@@ -32,7 +32,7 @@ func (s *JsonRpcService) Run(r *http.Request, args *RunRequest, _ *RunResponse) 
 }
 
 var (
-	servicePrefix = "habiliai-agentruntime-v1"
+	servicePrefix = "habiliai-agentnetwork-v1"
 )
 
 func RegisterJsonRpcService(c *din.Container, server *rpc.Server) error {
