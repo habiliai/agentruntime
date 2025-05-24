@@ -62,7 +62,7 @@ func TestLive(t *testing.T) {
 	})
 
 	t.Run("tool", func(t *testing.T) {
-		gablorkenTool := genkit.DefineTool(g, "gablorken", "use when need to calculate a gablorken",
+		gablorkenTool := genkit.DefineTool(g, "gablorken", "use when need to calculate a gablorken (power/exponent calculation)",
 			func(
 				ctx *ai.ToolContext,
 				input struct {
@@ -78,7 +78,7 @@ func TestLive(t *testing.T) {
 			ctx,
 			g,
 			ai.WithModel(model),                                 //
-			ai.WithPrompt("What is a gablorken of 2 over 3.5?"), //
+			ai.WithPrompt("What is a gablorken of 2 over 3.5? Use the gablorken tool to calculate this."), //
 			ai.WithTools(gablorkenTool),                         //
 		)
 		if err != nil {

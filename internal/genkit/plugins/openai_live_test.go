@@ -1,4 +1,4 @@
-package openai
+package plugins
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 
 	"github.com/firebase/genkit/go/ai"
+	oai "github.com/firebase/genkit/go/plugins/compat_oai/openai"
 )
 
 // The tests here only work with an API key set to a valid value.
@@ -29,15 +30,15 @@ func TestLive(t *testing.T) {
 		t.Skip("-all provided")
 	}
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&Plugin{
+	g, err := genkit.Init(ctx, genkit.WithPlugins(&oai.OpenAI{
 		APIKey: *apiKey,
 	}))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	embedder := Embedder(g, "text-embedding-3-small")
-	model := Model(g, "gpt-4o-mini")
+	embedder := (&oai.OpenAI{}).Embedder(g, "text-embedding-3-small")
+	model := (&oai.OpenAI{}).Model(g, "gpt-4o-mini")
 
 	t.Run("embedder", func(t *testing.T) {
 		res, err := ai.Embed(ctx, embedder, ai.WithTextDocs("yellow banana"))
@@ -90,9 +91,9 @@ func TestLive(t *testing.T) {
 			func(
 				ctx *ai.ToolContext,
 				input struct {
-				Value float64
-				Over  float64
-			},
+					Value float64
+					Over  float64
+				},
 			) (float64, error) {
 				return math.Pow(input.Value, input.Over), nil
 			},
@@ -100,7 +101,7 @@ func TestLive(t *testing.T) {
 		resp, err := genkit.Generate(
 			ctx,
 			g,
-			ai.WithModel(model),                                 //
+			ai.WithModel(model), //
 			ai.WithPrompt("What is a gablorken of 2 over 3.5?"), //
 			ai.WithTools(gablorkenTool),                         //
 		)
@@ -122,9 +123,9 @@ func TestLive(t *testing.T) {
 		resp, err := genkit.Generate(
 			ctx, //
 			g,
-			ai.WithModel(model),                                                    //
+			ai.WithModel(model), //
 			ai.WithPrompt("Create dummy user data with the name John and age 32."), //
-			ai.WithOutputType(User{}),                                              //
+			ai.WithOutputType(User{}), //
 		)
 		if err != nil {
 			t.Fatal(err)

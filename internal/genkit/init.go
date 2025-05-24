@@ -4,9 +4,9 @@ import (
 	"log/slog"
 
 	"github.com/firebase/genkit/go/genkit"
+	"github.com/firebase/genkit/go/plugins/compat_oai/openai"
 	"github.com/habiliai/agentruntime/config"
 	"github.com/habiliai/agentruntime/errors"
-	"github.com/habiliai/agentruntime/internal/genkit/plugins/openai"
 	"github.com/habiliai/agentruntime/internal/genkit/plugins/xai"
 	"github.com/habiliai/agentruntime/internal/mylog"
 	"github.com/jcooky/go-din"
@@ -25,7 +25,7 @@ func init() {
 		{
 			conf := din.MustGetT[*config.OpenAIConfig](c)
 			if conf.APIKey != "" {
-				plugins = append(plugins, &openai.Plugin{
+				plugins = append(plugins, &openai.OpenAI{
 					APIKey: conf.APIKey,
 				})
 				defaultModel = "openai/gpt-4o"
