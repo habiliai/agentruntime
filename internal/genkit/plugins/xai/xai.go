@@ -68,7 +68,7 @@ func (o *Plugin) Init(_ context.Context, g *genkit.Genkit) (err error) {
 	)
 
 	for model, caps := range knownCaps {
-		openaiapi.DefineModel(g, &client, labelPrefix, provider, model, caps)
+		openaiapi.DefineModel(g, client, labelPrefix, provider, model, caps)
 	}
 
 	return nil

@@ -26,17 +26,17 @@ func DefineModel(g *genkit.Genkit, client *goopenai.Client, labelPrefix, provide
 
 func DefineEmbedder(g *genkit.Genkit, client *goopenai.Client, provider, name string) ai.Embedder {
 	return genkit.DefineEmbedder(g, provider, name, func(ctx context.Context, input *ai.EmbedRequest) (*ai.EmbedResponse, error) {
-		var data goopenai.EmbeddingNewParamsInputUnion
+		var data goopenai.EmbeddingNewParamsInputArrayOfStrings
 		for _, doc := range input.Input {
 			for _, p := range doc.Content {
-				data.OfArrayOfStrings = append(data.OfArrayOfStrings, p.Text)
+				data = append(data, p.Text)
 			}
 		}
 
 		params := goopenai.EmbeddingNewParams{
-			Input:          data,
-			Model:          name,
-			EncodingFormat: goopenai.EmbeddingNewParamsEncodingFormatFloat,
+			Input:          goopenai.F[goopenai.EmbeddingNewParamsInputUnion](data),
+			Model:          goopenai.F(name),
+			EncodingFormat: goopenai.F(goopenai.EmbeddingNewParamsEncodingFormatFloat),
 		}
 
 		embRes, err := client.Embeddings.New(ctx, params)
