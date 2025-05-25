@@ -21,22 +21,20 @@ func TestConvertPart(t *testing.T) {
 		{
 			name:  "text part",
 			input: ai.NewTextPart("hi"),
-			want: goopenai.ChatCompletionContentPartUnionParam{
-				OfText: &goopenai.ChatCompletionContentPartTextParam{
-					Text: "hi",
-				},
+			want: goopenai.ChatCompletionContentPartTextParam{
+				Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+				Text: goopenai.F("hi"),
 			},
 		},
 		{
 			name:  "media part",
 			input: ai.NewMediaPart("image/jpeg", "https://example.com/image.jpg"),
-			want: goopenai.ChatCompletionContentPartUnionParam{
-				OfImageURL: &goopenai.ChatCompletionContentPartImageParam{
-					ImageURL: goopenai.ChatCompletionContentPartImageImageURLParam{
-						URL:    "https://example.com/image.jpg",
-						Detail: "auto",
-					},
-				},
+			want: goopenai.ChatCompletionContentPartImageParam{
+				Type: goopenai.F(goopenai.ChatCompletionContentPartImageTypeImageURL),
+				ImageURL: goopenai.F(goopenai.ChatCompletionContentPartImageImageURLParam{
+					URL:    goopenai.F("https://example.com/image.jpg"),
+					Detail: goopenai.F(goopenai.ChatCompletionContentPartImageImageURLDetailAuto),
+				}),
 			},
 		},
 	}
@@ -75,18 +73,18 @@ func TestConvertMessages(t *testing.T) {
 				},
 			},
 			want: []goopenai.ChatCompletionMessageParamUnion{
-				{
-					OfAssistant: &goopenai.ChatCompletionAssistantMessageParam{
-						ToolCalls: []goopenai.ChatCompletionMessageToolCallParam{
-							{
-								ID: "call_1234",
-								Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-									Name:      "tellAFunnyJoke",
-									Arguments: "{\"topic\":\"bob\"}",
-								},
-							},
+				goopenai.ChatCompletionAssistantMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionAssistantMessageParamRoleAssistant),
+					ToolCalls: goopenai.F([]goopenai.ChatCompletionMessageToolCallParam{
+						{
+							ID:   goopenai.String("call_1234",),
+							Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+							Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+								Name:      goopenai.F("tellAFunnyJoke"),
+								Arguments: goopenai.F("{\"topic\":\"bob\"}"),
+							}),
 						},
-					},
+					}),
 				},
 			},
 		},
@@ -107,13 +105,15 @@ func TestConvertMessages(t *testing.T) {
 				},
 			},
 			want: []goopenai.ChatCompletionMessageParamUnion{
-				{
-					OfTool: &goopenai.ChatCompletionToolMessageParam{
-						Content: goopenai.ChatCompletionToolMessageParamContentUnion{
-							OfString: goopenai.Opt("{\"joke\":\"Why did the bob cross the road?\"}"),
+				goopenai.ChatCompletionToolMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionToolMessageParamRoleTool),
+					Content: goopenai.F([]goopenai.ChatCompletionContentPartTextParam{
+						{
+							Text: goopenai.F("{\"joke\":\"Why did the bob cross the road?\"}"),
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
 						},
-						ToolCallID: "call_1234",
-					},
+					}),
+					ToolCallID: goopenai.String("call_1234",),
 				},
 			},
 		},
@@ -134,44 +134,32 @@ func TestConvertMessages(t *testing.T) {
 				},
 			},
 			want: []goopenai.ChatCompletionMessageParamUnion{
-				{
-					OfUser: &goopenai.ChatCompletionUserMessageParam{
-						Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-							OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-								{
-									OfText: &goopenai.ChatCompletionContentPartTextParam{
-										Text: "hi",
-									},
-								},
-							},
+				goopenai.ChatCompletionUserMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+					Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+						goopenai.ChatCompletionContentPartTextParam{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+							Text: goopenai.F("hi"),
 						},
-					},
+					}),
 				},
-				{
-					OfAssistant: &goopenai.ChatCompletionAssistantMessageParam{
-						Content: goopenai.ChatCompletionAssistantMessageParamContentUnion{
-							OfArrayOfContentParts: []goopenai.ChatCompletionAssistantMessageParamContentArrayOfContentPartUnion{
-								{
-									OfText: &goopenai.ChatCompletionContentPartTextParam{
-										Text: "how can I help you?",
-									},
-								},
-							},
+				goopenai.ChatCompletionAssistantMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionAssistantMessageParamRoleAssistant),
+					Content: goopenai.F([]goopenai.ChatCompletionAssistantMessageParamContentUnion{
+						goopenai.ChatCompletionContentPartTextParam{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+							Text: goopenai.F("how can I help you?"),
 						},
-					},
+					}),
 				},
-				{
-					OfUser: &goopenai.ChatCompletionUserMessageParam{
-						Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-							OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-								{
-									OfText: &goopenai.ChatCompletionContentPartTextParam{
-										Text: "I am testing",
-									},
-								},
-							},
+				goopenai.ChatCompletionUserMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+					Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+						goopenai.ChatCompletionContentPartTextParam{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+							Text: goopenai.F("I am testing"),
 						},
-					},
+					}),
 				},
 			},
 		},
@@ -187,26 +175,22 @@ func TestConvertMessages(t *testing.T) {
 				},
 			},
 			want: []goopenai.ChatCompletionMessageParamUnion{
-				{
-					OfUser: &goopenai.ChatCompletionUserMessageParam{
-						Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-							OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-								{
-									OfText: &goopenai.ChatCompletionContentPartTextParam{
-										Text: "describe the following image:",
-									},
-								},
-								{
-									OfImageURL: &goopenai.ChatCompletionContentPartImageParam{
-										ImageURL: goopenai.ChatCompletionContentPartImageImageURLParam{
-											URL:    "https://example.com/image.jpg",
-											Detail: "auto",
-										},
-									},
-								},
-							},
+				goopenai.ChatCompletionUserMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+					Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+						goopenai.ChatCompletionContentPartTextParam{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+							Text: goopenai.F("describe the following image:"),
 						},
-					},
+						goopenai.ChatCompletionContentPartImageParam{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartImageTypeImageURL),
+							ImageURL: goopenai.F(goopenai.ChatCompletionContentPartImageImageURLParam{
+								URL:    goopenai.F("https://example.com/image.jpg"),
+								Detail: goopenai.F(goopenai.ChatCompletionContentPartImageImageURLDetailAuto),
+							}),
+							//goopenai.F("describe the following image:"),
+						},
+					}),
 				},
 			},
 		},
@@ -219,16 +203,14 @@ func TestConvertMessages(t *testing.T) {
 				},
 			},
 			want: []goopenai.ChatCompletionMessageParamUnion{
-				{
-					OfSystem: &goopenai.ChatCompletionSystemMessageParam{
-						Content: goopenai.ChatCompletionSystemMessageParamContentUnion{
-							OfArrayOfContentParts: []goopenai.ChatCompletionContentPartTextParam{
-								{
-									Text: "system message",
-								},
-							},
+				goopenai.ChatCompletionSystemMessageParam{
+					Role: goopenai.F(goopenai.ChatCompletionSystemMessageParamRoleSystem),
+					Content: goopenai.F([]goopenai.ChatCompletionContentPartTextParam{
+						{
+							Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+							Text: goopenai.F("system message"),
 						},
-					},
+					}),
 				},
 			},
 		},
@@ -263,11 +245,12 @@ func TestConvertToolCall(t *testing.T) {
 				},
 			),
 			want: goopenai.ChatCompletionMessageToolCallParam{
-				ID: "call_1234",
-				Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-					Name:      "tellAFunnyJoke",
-					Arguments: "{\"topic\":\"bob\"}",
-				},
+				ID:   goopenai.String("call_1234",),
+				Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+				Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+					Name:      goopenai.F("tellAFunnyJoke"),
+					Arguments: goopenai.F("{\"topic\":\"bob\"}"),
+				}),
 			},
 		},
 		{
@@ -280,11 +263,12 @@ func TestConvertToolCall(t *testing.T) {
 				},
 			),
 			want: goopenai.ChatCompletionMessageToolCallParam{
-				ID: "call_1234",
-				Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-					Name:      "tellAFunnyJoke",
-					Arguments: "{}",
-				},
+				ID:   goopenai.String("call_1234",),
+				Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+				Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+					Name:      goopenai.F("tellAFunnyJoke"),
+					Arguments: goopenai.F("{}"),
+				}),
 			},
 		},
 		{
@@ -297,11 +281,12 @@ func TestConvertToolCall(t *testing.T) {
 				},
 			),
 			want: goopenai.ChatCompletionMessageToolCallParam{
-				ID: "call_1234",
-				Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-					Name:      "tellAFunnyJoke",
-					Arguments: "{}",
-				},
+				ID:   goopenai.String("call_1234",),
+				Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+				Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+					Name:      goopenai.F("tellAFunnyJoke"),
+					Arguments: goopenai.F("{}"),
+				}),
 			},
 		},
 	}
@@ -347,11 +332,12 @@ func TestConvertTool(t *testing.T) {
 				},
 			},
 			want: goopenai.ChatCompletionToolParam{
-				Function: shared.FunctionDefinitionParam{
-					Name:        "tellAFunnyJoke",
-					Description: goopenai.Opt[string]("use when want to tell a funny joke"),
-					Strict:      goopenai.Opt[bool](false),
-					Parameters: shared.FunctionParameters{
+				Type: goopenai.F(goopenai.ChatCompletionToolTypeFunction),
+				Function: goopenai.F(shared.FunctionDefinitionParam{
+					Name:        goopenai.F("tellAFunnyJoke"),
+					Description: goopenai.F("use when want to tell a funny joke"),
+					Strict:      goopenai.F(false),
+					Parameters: goopenai.F(shared.FunctionParameters{
 						"type": "object",
 						"properties": map[string]any{
 							"topic": map[string]any{
@@ -361,8 +347,8 @@ func TestConvertTool(t *testing.T) {
 						"required":             []string{"topic"},
 						"additionalProperties": false,
 						"$schema":              "http://json-schema.org/draft-07/schema#",
-					},
-				},
+					}),
+				}),
 			},
 		},
 	}
@@ -415,31 +401,27 @@ func TestConvertRequest(t *testing.T) {
 				},
 			},
 			want: goopenai.ChatCompletionNewParams{
-				Model: goopenai.ChatModelGPT4o,
-				Messages: []goopenai.ChatCompletionMessageParamUnion{
-					{
-						OfUser: &goopenai.ChatCompletionUserMessageParam{
-							Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-								OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-									{
-										OfText: &goopenai.ChatCompletionContentPartTextParam{
-											Text: "Tell a joke about dogs.",
-										},
-									},
-								},
+				Model: goopenai.F(goopenai.ChatModelGPT4o),
+				Messages: goopenai.F([]goopenai.ChatCompletionMessageParamUnion{
+					goopenai.ChatCompletionUserMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+						Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+							goopenai.ChatCompletionContentPartTextParam{
+								Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+								Text: goopenai.F("Tell a joke about dogs."),
 							},
-						},
+						}),
 					},
-				},
-				ResponseFormat: goopenai.ChatCompletionNewParamsResponseFormatUnion{
-					OfText: &shared.ResponseFormatTextParam{},
-				},
-				MaxCompletionTokens: goopenai.Opt[int64](10),
-				Stop: goopenai.ChatCompletionNewParamsStopUnion{
-					OfChatCompletionNewsStopArray: []string{"\n"},
-				},
-				Temperature: goopenai.Opt[float64](0.7),
-				TopP:        goopenai.Opt[float64](0.9),
+				}),
+				ResponseFormat: goopenai.F[goopenai.ChatCompletionNewParamsResponseFormatUnion](
+					goopenai.ChatCompletionNewParamsResponseFormat{
+						Type: goopenai.F(goopenai.ChatCompletionNewParamsResponseFormatTypeText),
+					},
+				),
+				MaxTokens:   goopenai.F[int64](10),
+				Stop:        goopenai.F[goopenai.ChatCompletionNewParamsStopUnion](goopenai.ChatCompletionNewParamsStopArray([]string{"\n"})),
+				Temperature: goopenai.F(0.7),
+				TopP:        goopenai.F(0.9),
 			},
 		},
 		{
@@ -507,45 +489,48 @@ func TestConvertRequest(t *testing.T) {
 				},
 			},
 			want: goopenai.ChatCompletionNewParams{
-				Model: goopenai.ChatModelGPT4o,
-				Messages: []goopenai.ChatCompletionMessageParamUnion{
-					{
-						OfUser: &goopenai.ChatCompletionUserMessageParam{
-							Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-								OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-									goopenai.TextContentPart("Tell a joke about dogs."),
-								},
+				Model: goopenai.F(goopenai.ChatModelGPT4o),
+				Messages: goopenai.F([]goopenai.ChatCompletionMessageParamUnion{
+					goopenai.ChatCompletionUserMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+						Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+							goopenai.ChatCompletionContentPartTextParam{
+								Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+								Text: goopenai.F("Tell a joke about dogs."),
 							},
-						},
+						}),
 					},
-					{
-						OfAssistant: &goopenai.ChatCompletionAssistantMessageParam{
-							ToolCalls: []goopenai.ChatCompletionMessageToolCallParam{
-								{
-									ID: "call_1234",
-									Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-										Name:      "tellAFunnyJoke",
-										Arguments: "{\"topic\":\"dogs\"}",
-									},
-								},
+					goopenai.ChatCompletionAssistantMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionAssistantMessageParamRoleAssistant),
+						ToolCalls: goopenai.F([]goopenai.ChatCompletionMessageToolCallParam{
+							{
+								ID:   goopenai.String("call_1234",),
+								Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+								Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+									Name:      goopenai.F("tellAFunnyJoke"),
+									Arguments: goopenai.F("{\"topic\":\"dogs\"}"),
+								}),
 							},
-						},
+						}),
 					},
-					{
-						OfTool: &goopenai.ChatCompletionToolMessageParam{
-							Content: goopenai.ChatCompletionToolMessageParamContentUnion{
-								OfString: goopenai.Opt("{\"joke\":\"Why did the dogs cross the road?\"}"),
+					goopenai.ChatCompletionToolMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionToolMessageParamRoleTool),
+						Content: goopenai.F([]goopenai.ChatCompletionContentPartTextParam{
+							{
+								Text: goopenai.F("{\"joke\":\"Why did the dogs cross the road?\"}"),
+								Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
 							},
-							ToolCallID: "call_1234",
-						},
+						}),
+						ToolCallID: goopenai.String("call_1234",),
 					},
-				},
-				Tools: []goopenai.ChatCompletionToolParam{
+				}),
+				Tools: goopenai.F([]goopenai.ChatCompletionToolParam{
 					{
-						Function: shared.FunctionDefinitionParam{
-							Name:        "tellAFunnyJoke",
-							Description: goopenai.Opt[string]("Tells jokes about an input topic. Use this tool whenever user asks you to tell a joke."),
-							Parameters: shared.FunctionParameters{
+						Type: goopenai.F(goopenai.ChatCompletionToolTypeFunction),
+						Function: goopenai.F(shared.FunctionDefinitionParam{
+							Name:        goopenai.F("tellAFunnyJoke"),
+							Description: goopenai.F("Tells jokes about an input topic. Use this tool whenever user asks you to tell a joke."),
+							Parameters: goopenai.F(shared.FunctionParameters{
 								"type": "object",
 								"properties": map[string]any{
 									"topic": map[string]any{
@@ -555,14 +540,16 @@ func TestConvertRequest(t *testing.T) {
 								"required":             []string{"topic"},
 								"additionalProperties": false,
 								"$schema":              "http://json-schema.org/draft-07/schema#",
-							},
-							Strict: goopenai.Opt[bool](false),
-						},
+							}),
+							Strict: goopenai.F(false),
+						}),
 					},
-				},
-				ResponseFormat: goopenai.ChatCompletionNewParamsResponseFormatUnion{
-					OfText: &shared.ResponseFormatTextParam{},
-				},
+				}),
+				ResponseFormat: goopenai.F[goopenai.ChatCompletionNewParamsResponseFormatUnion](
+					goopenai.ChatCompletionNewParamsResponseFormat{
+						Type: goopenai.F(goopenai.ChatCompletionNewParamsResponseFormatTypeText),
+					},
+				),
 			},
 		},
 		{
@@ -630,49 +617,48 @@ func TestConvertRequest(t *testing.T) {
 				},
 			},
 			want: goopenai.ChatCompletionNewParams{
-				Model: goopenai.ChatModelGPT4o,
-				Messages: []goopenai.ChatCompletionMessageParamUnion{
-					{
-						OfUser: &goopenai.ChatCompletionUserMessageParam{
-							Content: goopenai.ChatCompletionUserMessageParamContentUnion{
-								OfArrayOfContentParts: []goopenai.ChatCompletionContentPartUnionParam{
-									{
-										OfText: &goopenai.ChatCompletionContentPartTextParam{
-											Text: "Tell a joke about dogs.",
-										},
-									},
-								},
+				Model: goopenai.F(goopenai.ChatModelGPT4o),
+				Messages: goopenai.F([]goopenai.ChatCompletionMessageParamUnion{
+					goopenai.ChatCompletionUserMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionUserMessageParamRoleUser),
+						Content: goopenai.F([]goopenai.ChatCompletionContentPartUnionParam{
+							goopenai.ChatCompletionContentPartTextParam{
+								Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
+								Text: goopenai.F("Tell a joke about dogs."),
 							},
-						},
+						}),
 					},
-					{
-						OfAssistant: &goopenai.ChatCompletionAssistantMessageParam{
-							ToolCalls: []goopenai.ChatCompletionMessageToolCallParam{
-								{
-									ID: "call_1234",
-									Function: goopenai.ChatCompletionMessageToolCallFunctionParam{
-										Name:      "tellAFunnyJoke",
-										Arguments: "{\"topic\":\"dogs\"}",
-									},
-								},
+					goopenai.ChatCompletionAssistantMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionAssistantMessageParamRoleAssistant),
+						ToolCalls: goopenai.F([]goopenai.ChatCompletionMessageToolCallParam{
+							{
+								ID:   goopenai.String("call_1234",),
+								Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
+								Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
+									Name:      goopenai.F("tellAFunnyJoke"),
+									Arguments: goopenai.F("{\"topic\":\"dogs\"}"),
+								}),
 							},
-						},
+						}),
 					},
-					{
-						OfTool: &goopenai.ChatCompletionToolMessageParam{
-							Content: goopenai.ChatCompletionToolMessageParamContentUnion{
-								OfString: goopenai.Opt("{\"joke\":\"Why did the dogs cross the road?\"}"),
+					goopenai.ChatCompletionToolMessageParam{
+						Role: goopenai.F(goopenai.ChatCompletionToolMessageParamRoleTool),
+						Content: goopenai.F([]goopenai.ChatCompletionContentPartTextParam{
+							{
+								Text: goopenai.F("{\"joke\":\"Why did the dogs cross the road?\"}"),
+								Type: goopenai.F(goopenai.ChatCompletionContentPartTextTypeText),
 							},
-							ToolCallID: "call_1234",
-						},
+						}),
+						ToolCallID: goopenai.String("call_1234",),
 					},
-				},
-				Tools: []goopenai.ChatCompletionToolParam{
+				}),
+				Tools: goopenai.F([]goopenai.ChatCompletionToolParam{
 					{
-						Function: shared.FunctionDefinitionParam{
-							Name:        "tellAFunnyJoke",
-							Description: goopenai.Opt[string]("Tells jokes about an input topic. Use this tool whenever user asks you to tell a joke."),
-							Parameters: shared.FunctionParameters{
+						Type: goopenai.F(goopenai.ChatCompletionToolTypeFunction),
+						Function: goopenai.F(shared.FunctionDefinitionParam{
+							Name:        goopenai.F("tellAFunnyJoke"),
+							Description: goopenai.F("Tells jokes about an input topic. Use this tool whenever user asks you to tell a joke."),
+							Parameters: goopenai.F(shared.FunctionParameters{
 								"type": "object",
 								"properties": map[string]any{
 									"topic": map[string]any{
@@ -682,14 +668,16 @@ func TestConvertRequest(t *testing.T) {
 								"required":             []string{"topic"},
 								"additionalProperties": false,
 								"$schema":              "http://json-schema.org/draft-07/schema#",
-							},
-							Strict: goopenai.Opt[bool](false),
-						},
+							}),
+							Strict: goopenai.F(false),
+						}),
 					},
-				},
-				ResponseFormat: goopenai.ChatCompletionNewParamsResponseFormatUnion{
-					OfJSONObject: &goopenai.ResponseFormatJSONObjectParam{},
-				},
+				}),
+				ResponseFormat: goopenai.F[goopenai.ChatCompletionNewParamsResponseFormatUnion](
+					goopenai.ChatCompletionNewParamsResponseFormat{
+						Type: goopenai.F(goopenai.ChatCompletionNewParamsResponseFormatTypeJSONObject),
+					},
+				),
 			},
 		},
 	}
