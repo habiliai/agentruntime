@@ -135,7 +135,7 @@ func convertMessages(messages []*ai.Message) ([]goopenai.ChatCompletionMessagePa
 					return nil, err
 				}
 				tm := goopenai.ToolMessage(
-					p.ToolResponse.Name,
+					p.ToolResponse.Ref,
 					string(output),
 				)
 				msgs = append(msgs, tm)
@@ -183,7 +183,7 @@ func convertToolCalls(content []*ai.Part) ([]goopenai.ChatCompletionMessageToolC
 
 func convertToolCall(part *ai.Part) (goopenai.ChatCompletionMessageToolCallParam, error) {
 	param := goopenai.ChatCompletionMessageToolCallParam{
-		ID:   goopenai.F(part.ToolRequest.Name),
+		ID:   goopenai.F(part.ToolRequest.Ref),
 		Type: goopenai.F(goopenai.ChatCompletionMessageToolCallTypeFunction),
 		Function: goopenai.F(goopenai.ChatCompletionMessageToolCallFunctionParam{
 			Name: goopenai.F(part.ToolRequest.Name),
