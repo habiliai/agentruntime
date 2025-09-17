@@ -22,14 +22,6 @@ import (
 	"github.com/samber/lo"
 )
 
-// min returns the smaller of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func (s *service) IndexKnowledgeFromPDF(ctx context.Context, id string, inputs []io.Reader) (*Knowledge, error) {
 	// First, delete existing knowledge for this agent
 	if id != "" {
