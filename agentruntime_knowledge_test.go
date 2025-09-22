@@ -410,7 +410,7 @@ func TestAgentWithRAGAndPDFKnowledge(t *testing.T) {
 	}, knowledgeConfig, logger)
 	require.NoError(t, err)
 
-	if _, err := knowledgeService.IndexKnowledgeFromPDF(ctx, "solana-whitepaper", []io.Reader{bytes.NewReader(pdfFile)}); err != nil {
+	if _, err := knowledgeService.IndexKnowledgeFromPDF(ctx, "solana-whitepaper", func(yield func(io.Reader, error) bool) { yield(bytes.NewReader(pdfFile), nil) }); err != nil {
 		t.Fatalf("Failed to index knowledge from PDF: %v", err)
 	}
 

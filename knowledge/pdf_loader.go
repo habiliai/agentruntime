@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"iter"
 	"log/slog"
 	"math"
 	"strings"
@@ -22,7 +23,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func (s *service) IndexKnowledgeFromPDF(ctx context.Context, id string, inputs []io.Reader) (*Knowledge, error) {
+func (s *service) IndexKnowledgeFromPDF(ctx context.Context, id string, inputs iter.Seq2[io.Reader, error]) (*Knowledge, error) {
 	// First, delete existing knowledge for this agent
 	if id != "" {
 		if err := s.DeleteKnowledge(ctx, id); err != nil {
@@ -48,7 +49,7 @@ func ProcessKnowledgeFromMultiplePDFs(
 	ctx context.Context,
 	g *genkit.Genkit,
 	id string,
-	inputs []io.Reader,
+	inputs iter.Seq2[io.Reader, error],
 	logger *slog.Logger,
 	config *config.KnowledgeConfig,
 	embedder Embedder,
@@ -71,7 +72,10 @@ func ProcessKnowledgeFromMultiplePDFs(
 	globalPageNumber := 1
 
 	// Process each PDF directly
-	for _, input := range inputs {
+	for input, err := range inputs {
+		if err != nil {
+			return nil, err
+		}
 		pdfCount++
 
 		// Process PDF directly to get documents and metadata

@@ -3,6 +3,7 @@ package knowledge
 import (
 	"context"
 	"io"
+	"iter"
 	"log/slog"
 	"sort"
 
@@ -15,7 +16,7 @@ type (
 	Service interface {
 		// Knowledge management methods
 		IndexKnowledgeFromMap(ctx context.Context, id string, input []map[string]any) (*Knowledge, error)
-		IndexKnowledgeFromPDF(ctx context.Context, id string, inputs []io.Reader) (*Knowledge, error)
+		IndexKnowledgeFromPDF(ctx context.Context, id string, inputs iter.Seq2[io.Reader, error]) (*Knowledge, error)
 		RetrieveRelevantKnowledge(ctx context.Context, query string, limit int, allowedKnowledgeIds []string) ([]*KnowledgeSearchResult, error)
 		DeleteKnowledge(ctx context.Context, knowledgeId string) error
 		Close() error
