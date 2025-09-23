@@ -1,0 +1,25 @@
+TeamZero Knowledge Management System
+
+This is a plain text document for testing purposes.
+The system should be able to process this file and convert it to PDF format.
+
+Key Points:
+- Support for multiple file formats
+- Automatic PDF conversion
+- Knowledge indexing and search
+- Vector embeddings for semantic search
+
+Technical Details:
+The file converter service handles the conversion process using headless Chrome
+for HTML-to-PDF conversion. Each document type (Markdown, CSV, Plain Text) is
+first converted to HTML and then rendered as PDF.
+
+File Processing Pipeline:
+1. File upload and validation
+2. Content type detection
+3. Format-specific conversion to HTML
+4. HTML-to-PDF rendering using Chrome
+5. PDF indexing and embedding generation
+6. Knowledge storage in database
+
+This ensures consistent processing regardless of the original file format.

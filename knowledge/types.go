@@ -59,7 +59,7 @@ func (d *Document) ToDoc() (*ai.Document, error) {
 	}
 
 	switch d.Content.MIMEType {
-	case "text/plain", "plain/text":
+	case "text/plain", "plain/text", "text/markdown":
 		doc.Content = append(doc.Content, ai.NewTextPart(d.Content.Text))
 	case "image/jpeg", "image/jpg", "image/png", "image/webp":
 		doc.Content = append(doc.Content, ai.NewMediaPart(d.Content.MIMEType, d.Content.Image))
@@ -72,7 +72,7 @@ func (d *Document) ToDoc() (*ai.Document, error) {
 
 func (c *Content) Type() ContentType {
 	switch c.MIMEType {
-	case "plain/text", "text/plain":
+	case "plain/text", "text/plain", "text/markdown":
 		return ContentTypeText
 	case "image/jpeg", "image/jpg", "image/png", "image/webp":
 		return ContentTypeImage

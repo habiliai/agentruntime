@@ -23,27 +23,6 @@ import (
 	"github.com/samber/lo"
 )
 
-func (s *service) IndexKnowledgeFromPDF(ctx context.Context, id string, inputs iter.Seq2[io.Reader, error]) (*Knowledge, error) {
-	// First, delete existing knowledge for this agent
-	if id != "" {
-		if err := s.DeleteKnowledge(ctx, id); err != nil {
-			return nil, errors.Wrapf(err, "failed to delete existing knowledge")
-		}
-	}
-
-	knowledge, err := ProcessKnowledgeFromMultiplePDFs(ctx, s.genkit, id, inputs, s.logger, s.config, s.embedder)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to process knowledge from PDFs")
-	}
-
-	// Store all items
-	if err := s.store.Store(ctx, knowledge); err != nil {
-		return nil, errors.Wrapf(err, "failed to store knowledge")
-	}
-
-	return knowledge, nil
-}
-
 // ProcessKnowledgeFromMultiplePDFs processes multiple PDF readers and merges them into a single Knowledge object
 func ProcessKnowledgeFromMultiplePDFs(
 	ctx context.Context,

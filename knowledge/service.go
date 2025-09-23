@@ -10,13 +10,19 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/habiliai/agentruntime/config"
 	xgenkit "github.com/habiliai/agentruntime/internal/genkit"
+	"github.com/pkg/errors"
 )
 
 type (
+	DocumentReader struct {
+		Content     io.Reader
+		ContentType string // text/plain, text/markdown, text/csv, text/json, application/pdf
+	}
+
 	Service interface {
 		// Knowledge management methods
 		IndexKnowledgeFromMap(ctx context.Context, id string, input []map[string]any) (*Knowledge, error)
-		IndexKnowledgeFromPDF(ctx context.Context, id string, inputs iter.Seq2[io.Reader, error]) (*Knowledge, error)
+		IndexKnowledgeFromDocuments(ctx context.Context, id string, inputs iter.Seq2[*DocumentReader, error]) (*Knowledge, error)
 		RetrieveRelevantKnowledge(ctx context.Context, query string, limit int, allowedKnowledgeIds []string) ([]*KnowledgeSearchResult, error)
 		DeleteKnowledge(ctx context.Context, knowledgeId string) error
 		Close() error
@@ -203,6 +209,28 @@ func (s *service) RetrieveRelevantKnowledge(ctx context.Context, query string, l
 		candidates = candidates[:limit]
 	}
 	return candidates, nil
+}
+
+// IndexKnowledgeFromDocuments processes multiple documents with different types and merges them into a single Knowledge object
+func (s *service) IndexKnowledgeFromDocuments(ctx context.Context, id string, inputs iter.Seq2[*DocumentReader, error]) (*Knowledge, error) {
+	// First, delete existing knowledge for this ID
+	if id != "" {
+		if err := s.DeleteKnowledge(ctx, id); err != nil {
+			return nil, errors.Wrapf(err, "failed to delete existing knowledge")
+		}
+	}
+
+	knowledge, err := ProcessKnowledgeFromMultipleDocuments(ctx, s.genkit, id, inputs, s.logger, s.config, s.embedder)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to process knowledge from documents")
+	}
+
+	// Store all items
+	if err := s.store.Store(ctx, knowledge); err != nil {
+		return nil, errors.Wrapf(err, "failed to store knowledge")
+	}
+
+	return knowledge, nil
 }
 
 // DeleteAgentKnowledge removes all knowledge for an agent

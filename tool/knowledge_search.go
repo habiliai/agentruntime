@@ -87,7 +87,7 @@ The search uses semantic similarity, so exact keyword matches are not required. 
 						ContentType: res.Content.MIMEType,
 						Url:         res.Content.Image,
 					}
-				case "text/plain", "plain/text":
+				case "text/plain", "plain/text", "text/markdown":
 					k.Context = res.Content.Text
 				default:
 					return reply, fmt.Errorf("unknown content type: %s", res.Content.MIMEType)

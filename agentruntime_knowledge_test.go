@@ -3,7 +3,6 @@ package agentruntime_test
 import (
 	"bytes"
 	"context"
-	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -410,7 +409,15 @@ func TestAgentWithRAGAndPDFKnowledge(t *testing.T) {
 	}, knowledgeConfig, logger)
 	require.NoError(t, err)
 
-	if _, err := knowledgeService.IndexKnowledgeFromPDF(ctx, "solana-whitepaper", func(yield func(io.Reader, error) bool) { yield(bytes.NewReader(pdfFile), nil) }); err != nil {
+	// Create DocumentReader iterator for PDF processing
+	pdfDocuments := func(yield func(knowledge.DocumentReader, error) bool) {
+		yield(knowledge.DocumentReader{
+			Content:     bytes.NewReader(pdfFile),
+			ContentType: "application/pdf",
+		}, nil)
+	}
+
+	if _, err := knowledgeService.IndexKnowledgeFromDocuments(ctx, "solana-whitepaper", pdfDocuments); err != nil {
 		t.Fatalf("Failed to index knowledge from PDF: %v", err)
 	}
 
@@ -443,4 +450,259 @@ func TestAgentWithRAGAndPDFKnowledge(t *testing.T) {
 	t.Logf("Output: %s", out)
 
 	require.True(t, strings.Contains(out, "Solana"), "Output should contain `Solana`")
+}
+
+// TestAgentWithMultipleDocumentTypes tests the new IndexKnowledgeFromDocuments functionality
+// with real CSV, Markdown, and Text files
+func TestAgentWithMultipleDocumentTypes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping test in short mode")
+	}
+
+	// Check for required API keys
+	if os.Getenv("OPENAI_API_KEY") == "" {
+		t.Skip("Skipping test because OPENAI_API_KEY is not set")
+	}
+	if os.Getenv("ANTHROPIC_API_KEY") == "" {
+		t.Skip("Skipping test because ANTHROPIC_API_KEY is not set")
+	}
+	if os.Getenv("NOMIC_API_KEY") == "" {
+		t.Skip("Skipping test because NOMIC_API_KEY is not set (required for embeddings)")
+	}
+
+	ctx := context.TODO()
+
+	// Create a test agent that can search through multiple document types
+	agent := entity.Agent{
+		Name:        "TeamZeroKnowledgeAgent",
+		Description: "An AI agent that can search through various document formats (CSV, Markdown, Text)",
+		ModelName:   "anthropic/claude-4-sonnet", // Use Claude 4 Sonnet as requested
+		System:      "You are a helpful assistant with access to TeamZero's knowledge base containing employee data, documentation, and technical information. Use the knowledge_search tool to find relevant information.",
+		Role:        "Knowledge Assistant",
+		// Add knowledge_search skill for tool-based knowledge retrieval
+		Skills: []entity.AgentSkillUnion{
+			{
+				Type: "nativeTool",
+				OfNative: &entity.NativeAgentSkill{
+					Name:    "knowledge_search",
+					Details: "Search through the knowledge base for relevant information across multiple document formats",
+				},
+			},
+		},
+	}
+
+	// Create knowledge service with appropriate settings
+	knowledgeConfig := config.NewKnowledgeConfig()
+	knowledgeConfig.SqliteEnabled = true
+	knowledgeConfig.SqlitePath = ":memory:"
+	knowledgeConfig.RerankEnabled = false // Disable reranking to test basic functionality
+	knowledgeConfig.VectorEnabled = true
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+
+	knowledgeService, err := knowledge.NewService(ctx, &config.ModelConfig{
+		OpenAIAPIKey:    os.Getenv("OPENAI_API_KEY"),
+		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),
+	}, knowledgeConfig, logger)
+	require.NoError(t, err)
+	defer knowledgeService.Close()
+
+	// Read test data files
+	csvData, err := os.ReadFile("knowledge/testdata/sample.csv")
+	require.NoError(t, err)
+
+	mdData, err := os.ReadFile("knowledge/testdata/sample.md")
+	require.NoError(t, err)
+
+	textData, err := os.ReadFile("knowledge/testdata/sample.txt")
+	require.NoError(t, err)
+
+	// Create DocumentReader iterator for IndexKnowledgeFromDocuments
+	documents := func(yield func(knowledge.DocumentReader, error) bool) {
+		// CSV document with employee data
+		if !yield(knowledge.DocumentReader{
+			Content:     bytes.NewReader(csvData),
+			ContentType: "text/csv",
+		}, nil) {
+			return
+		}
+
+		// Markdown document with feature information
+		if !yield(knowledge.DocumentReader{
+			Content:     bytes.NewReader(mdData),
+			ContentType: "text/markdown",
+		}, nil) {
+			return
+		}
+
+		// Text document with technical details
+		yield(knowledge.DocumentReader{
+			Content:     bytes.NewReader(textData),
+			ContentType: "text/plain",
+		}, nil)
+	}
+
+	// Index knowledge from multiple document types
+	knowledge, err := knowledgeService.IndexKnowledgeFromDocuments(ctx, "teamzero-knowledge", documents)
+	require.NoError(t, err)
+	require.NotNil(t, knowledge)
+
+	t.Logf("Indexed knowledge with %d documents from %d source files",
+		len(knowledge.Documents), knowledge.Metadata["document_count"])
+
+	// Create agent runtime
+	runtime, err := agentruntime.NewAgentRuntime(
+		ctx,
+		agentruntime.WithAgent(agent),
+		agentruntime.WithOpenAIAPIKey(os.Getenv("OPENAI_API_KEY")),
+		agentruntime.WithAnthropicAPIKey(os.Getenv("ANTHROPIC_API_KEY")),
+		agentruntime.WithKnowledgeService(knowledgeService),
+		agentruntime.WithLogger(logger),
+	)
+	require.NoError(t, err)
+	defer runtime.Close()
+
+	// Test 1: Query about CSV data (employee information)
+	t.Run("CSV_Employee_Query", func(t *testing.T) {
+		resp, err := runtime.Run(ctx, engine.RunRequest{
+			History: []engine.Conversation{
+				{
+					User: "USER",
+					Text: "Who works in the Engineering department and what are their positions?",
+				},
+			},
+		}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		out := resp.Text()
+		t.Logf("CSV Query Response: %s", out)
+
+		// Verify knowledge_search tool was called
+		knowledgeSearchCalled := false
+		for _, toolCall := range resp.ToolCalls {
+			if toolCall.Name == "knowledge_search" {
+				knowledgeSearchCalled = true
+				t.Logf("Knowledge search called with: %s", string(toolCall.Arguments))
+				t.Logf("Knowledge search results: %s", string(toolCall.Result))
+			}
+		}
+		require.True(t, knowledgeSearchCalled, "knowledge_search should be called for employee query")
+
+		// Check that response contains Engineering employees
+		outputLower := strings.ToLower(out)
+		hasEngineeringInfo := strings.Contains(outputLower, "engineering") &&
+			(strings.Contains(outputLower, "john") || strings.Contains(outputLower, "mike") ||
+				strings.Contains(outputLower, "david") || strings.Contains(outputLower, "emily"))
+		require.True(t, hasEngineeringInfo, "Should mention Engineering department and employees")
+	})
+
+	// Test 2: Query about Markdown data (supported file formats)
+	t.Run("Markdown_Features_Query", func(t *testing.T) {
+		resp, err := runtime.Run(ctx, engine.RunRequest{
+			History: []engine.Conversation{
+				{
+					User: "USER",
+					Text: "What file formats does TeamZero support? What are the features available?",
+				},
+			},
+		}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		out := resp.Text()
+		t.Logf("Markdown Query Response: %s", out)
+
+		// Verify knowledge_search tool was called
+		featureSearchCalled := false
+		for _, toolCall := range resp.ToolCalls {
+			if toolCall.Name == "knowledge_search" {
+				featureSearchCalled = true
+				t.Logf("Features search called with: %s", string(toolCall.Arguments))
+			}
+		}
+		require.True(t, featureSearchCalled, "knowledge_search should be called for features query")
+
+		// Check that response mentions supported formats
+		outputLower := strings.ToLower(out)
+		hasFormatInfo := (strings.Contains(outputLower, "pdf") || strings.Contains(outputLower, "markdown") ||
+			strings.Contains(outputLower, "csv") || strings.Contains(outputLower, "text")) &&
+			strings.Contains(outputLower, "teamzero")
+		require.True(t, hasFormatInfo, "Should mention supported file formats and TeamZero")
+	})
+
+	// Test 3: Query about Text data (technical processing pipeline)
+	t.Run("Text_Pipeline_Query", func(t *testing.T) {
+		resp, err := runtime.Run(ctx, engine.RunRequest{
+			History: []engine.Conversation{
+				{
+					User: "USER",
+					Text: "How does the file processing pipeline work? What are the steps involved?",
+				},
+			},
+		}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		out := resp.Text()
+		t.Logf("Pipeline Query Response: %s", out)
+
+		// Verify knowledge_search tool was called
+		pipelineSearchCalled := false
+		for _, toolCall := range resp.ToolCalls {
+			if toolCall.Name == "knowledge_search" {
+				pipelineSearchCalled = true
+				t.Logf("Pipeline search called with: %s", string(toolCall.Arguments))
+			}
+		}
+		require.True(t, pipelineSearchCalled, "knowledge_search should be called for pipeline query")
+
+		// Check that response mentions pipeline steps
+		outputLower := strings.ToLower(out)
+		hasPipelineInfo := strings.Contains(outputLower, "pipeline") ||
+			strings.Contains(outputLower, "processing") ||
+			strings.Contains(outputLower, "conversion") ||
+			strings.Contains(outputLower, "pdf")
+		require.True(t, hasPipelineInfo, "Should mention processing pipeline or conversion steps")
+	})
+
+	// Test 4: Cross-document query (information from multiple sources)
+	t.Run("Cross_Document_Query", func(t *testing.T) {
+		resp, err := runtime.Run(ctx, engine.RunRequest{
+			History: []engine.Conversation{
+				{
+					User: "USER",
+					Text: "Can you tell me about TeamZero's knowledge management capabilities and who is working on the engineering team?",
+				},
+			},
+		}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		out := resp.Text()
+		t.Logf("Cross-Document Query Response: %s", out)
+
+		// Verify knowledge_search tool was called
+		crossSearchCalled := false
+		for _, toolCall := range resp.ToolCalls {
+			if toolCall.Name == "knowledge_search" {
+				crossSearchCalled = true
+				t.Logf("Cross-document search called with: %s", string(toolCall.Arguments))
+			}
+		}
+		require.True(t, crossSearchCalled, "knowledge_search should be called for cross-document query")
+
+		// This query should potentially find information from multiple documents
+		outputLower := strings.ToLower(out)
+		hasTeamZeroInfo := strings.Contains(outputLower, "teamzero")
+		hasEngineeringInfo := strings.Contains(outputLower, "engineering") || strings.Contains(outputLower, "engineer")
+
+		// At least one of these should be true for a successful cross-document search
+		require.True(t, hasTeamZeroInfo || hasEngineeringInfo,
+			"Should find information about TeamZero or engineering team from multiple documents")
+	})
+
+	t.Log("All multi-document knowledge tests passed - IndexKnowledgeFromDocuments is working correctly")
 }
