@@ -410,8 +410,8 @@ func TestAgentWithRAGAndPDFKnowledge(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create DocumentReader iterator for PDF processing
-	pdfDocuments := func(yield func(knowledge.DocumentReader, error) bool) {
-		yield(knowledge.DocumentReader{
+	pdfDocuments := func(yield func(*knowledge.DocumentReader, error) bool) {
+		yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader(pdfFile),
 			ContentType: "application/pdf",
 		}, nil)
@@ -520,9 +520,9 @@ func TestAgentWithMultipleDocumentTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create DocumentReader iterator for IndexKnowledgeFromDocuments
-	documents := func(yield func(knowledge.DocumentReader, error) bool) {
+	documents := func(yield func(*knowledge.DocumentReader, error) bool) {
 		// CSV document with employee data
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader(csvData),
 			ContentType: "text/csv",
 		}, nil) {
@@ -530,7 +530,7 @@ func TestAgentWithMultipleDocumentTypes(t *testing.T) {
 		}
 
 		// Markdown document with feature information
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader(mdData),
 			ContentType: "text/markdown",
 		}, nil) {
@@ -538,7 +538,7 @@ func TestAgentWithMultipleDocumentTypes(t *testing.T) {
 		}
 
 		// Text document with technical details
-		yield(knowledge.DocumentReader{
+		yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader(textData),
 			ContentType: "text/plain",
 		}, nil)

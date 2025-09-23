@@ -94,9 +94,9 @@ func TestIndexKnowledgeFromDocuments(t *testing.T) {
 	defer service.Close()
 
 	// Create document readers for different types
-	documents := func(yield func(knowledge.DocumentReader, error) bool) {
+	documents := func(yield func(*knowledge.DocumentReader, error) bool) {
 		// CSV document
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testCSVData)),
 			ContentType: "text/csv",
 		}, nil) {
@@ -104,7 +104,7 @@ func TestIndexKnowledgeFromDocuments(t *testing.T) {
 		}
 
 		// JSON array document
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testJSONArrayData)),
 			ContentType: "application/json",
 		}, nil) {
@@ -112,7 +112,7 @@ func TestIndexKnowledgeFromDocuments(t *testing.T) {
 		}
 
 		// Text document
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testTextData)),
 			ContentType: "text/plain",
 		}, nil) {
@@ -120,7 +120,7 @@ func TestIndexKnowledgeFromDocuments(t *testing.T) {
 		}
 
 		// Markdown document
-		yield(knowledge.DocumentReader{
+		yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testMarkdownData)),
 			ContentType: "text/markdown",
 		}, nil)
@@ -198,15 +198,15 @@ func TestProcessKnowledgeFromMultipleDocuments(t *testing.T) {
 	knowledgeConfig := config.NewKnowledgeConfig()
 
 	// Create document readers
-	documents := func(yield func(knowledge.DocumentReader, error) bool) {
-		if !yield(knowledge.DocumentReader{
+	documents := func(yield func(*knowledge.DocumentReader, error) bool) {
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testCSVData)),
 			ContentType: "text/csv",
 		}, nil) {
 			return
 		}
 
-		yield(knowledge.DocumentReader{
+		yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testJSONArrayData)),
 			ContentType: "application/json",
 		}, nil)
@@ -442,7 +442,7 @@ func TestProcessDocumentsByType_UnknownType(t *testing.T) {
 	knowledgeConfig := config.NewKnowledgeConfig()
 
 	// Test with unknown content type
-	docReader := knowledge.DocumentReader{
+	docReader := &knowledge.DocumentReader{
 		Content:     bytes.NewReader([]byte("This is some text content")),
 		ContentType: "application/unknown",
 	}
@@ -479,9 +479,9 @@ func TestDocumentReader_ErrorHandling(t *testing.T) {
 	defer service.Close()
 
 	// Create iterator that yields an error
-	documentsWithError := func(yield func(knowledge.DocumentReader, error) bool) {
+	documentsWithError := func(yield func(*knowledge.DocumentReader, error) bool) {
 		// First valid document
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(testTextData)),
 			ContentType: "text/plain",
 		}, nil) {
@@ -489,7 +489,7 @@ func TestDocumentReader_ErrorHandling(t *testing.T) {
 		}
 
 		// Document with error
-		yield(knowledge.DocumentReader{}, fmt.Errorf("test error"))
+		yield(nil, fmt.Errorf("test error"))
 	}
 
 	// Process should fail due to error
@@ -521,14 +521,14 @@ func TestIndexKnowledgeFromDocuments_WithSearch(t *testing.T) {
 	defer service.Close()
 
 	// Create diverse documents with searchable content
-	documents := func(yield func(knowledge.DocumentReader, error) bool) {
+	documents := func(yield func(*knowledge.DocumentReader, error) bool) {
 		// CSV with employee data
 		employeeCSV := `name,role,department,description
 John Smith,Engineer,Development,Experienced software engineer specializing in backend systems
 Alice Johnson,Designer,UX,Creative designer with expertise in user experience and interfaces  
 Bob Wilson,Manager,Operations,Operations manager handling logistics and supply chain`
 
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(employeeCSV)),
 			ContentType: "text/csv",
 		}, nil) {
@@ -542,7 +542,7 @@ Bob Wilson,Manager,Operations,Operations manager handling logistics and supply c
 	{"name": "Tool Kit", "category": "hardware", "description": "Complete toolkit for mechanical repairs"}
 ]`
 
-		if !yield(knowledge.DocumentReader{
+		if !yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(productJSON)),
 			ContentType: "application/json",
 		}, nil) {
@@ -564,7 +564,7 @@ Our system uses a microservices architecture with the following components:
 - Mobile app for iOS and Android
 - Admin dashboard for system management`
 
-		yield(knowledge.DocumentReader{
+		yield(&knowledge.DocumentReader{
 			Content:     bytes.NewReader([]byte(techDoc)),
 			ContentType: "text/markdown",
 		}, nil)
