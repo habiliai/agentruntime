@@ -2,7 +2,9 @@ package tool
 
 import (
 	"context"
+	"slices"
 
+	"github.com/gosimple/slug"
 	"github.com/habiliai/agentruntime/entity"
 	"github.com/pkg/errors"
 )
@@ -14,7 +16,7 @@ type (
 	}
 )
 
-func (m *manager) registerLLMTool(ctx context.Context, name, description, instruction string) {
+func (m *manager) registerLLMTool(_ context.Context, name, description, instruction string) {
 	registerLocalTool(
 		m,
 		name,
@@ -43,7 +45,18 @@ func (m *manager) registerLLMSkill(ctx context.Context, skill *entity.LLMAgentSk
 	if skill.Instruction == "" {
 		return errors.New("llm instruction is required")
 	}
-	m.registerLLMTool(ctx, skill.Name, skill.Description, skill.Instruction)
+	toolName := slug.Make(skill.Name)
+	if !CanBeUsedAsToolName(toolName) {
+		return errors.New("llm tool name is not valid. only accept by [a-zA-Z0-9_-]{1,128}")
+	}
+	m.registerLLMTool(ctx, toolName, skill.Description, skill.Instruction)
+
+	if _, ok := m.skillToolNames[skill.Name]; ok {
+		if slices.Contains(m.skillToolNames[skill.Name], toolName) {
+			return errors.New("llm tool name already registered")
+		}
+	}
+	m.skillToolNames[skill.Name] = append(m.skillToolNames[skill.Name], toolName)
 
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func registerNativeTool[In any, Out any](m *manager, toolName, toolDescription string, skill *entity.NativeAgentSkill, fn func(ctx *Context, input In) (Out, error)) error {
-	toolNames := m.nativeSkillToolNames[skill.Name]
+	toolNames := m.skillToolNames[skill.Name]
 
 	for _, existingToolName := range toolNames {
 		if existingToolName == toolName {
@@ -15,7 +15,7 @@ func registerNativeTool[In any, Out any](m *manager, toolName, toolDescription s
 	}
 
 	registerLocalTool(m, toolName, toolDescription, skill, fn)
-	m.nativeSkillToolNames[skill.Name] = append(toolNames, toolName)
+	m.skillToolNames[skill.Name] = append(toolNames, toolName)
 
 	return nil
 }

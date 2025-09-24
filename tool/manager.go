@@ -27,11 +27,11 @@ type (
 	manager struct {
 		logger *mylog.Logger
 
-		mcpClients           map[string]*mcpclient.Client
-		mtx                  sync.Mutex
-		genkit               *genkit.Genkit
-		nativeSkillToolNames map[string][]string // skill.Name -> tool names
-		usagePrompts         map[string]string
+		mcpClients     map[string]*mcpclient.Client
+		mtx            sync.Mutex
+		genkit         *genkit.Genkit
+		skillToolNames map[string][]string // skill.Name -> tool names
+		usagePrompts   map[string]string
 
 		knowledgeService knowledge.Service
 		memoryService    memory.Service
@@ -48,13 +48,13 @@ var (
 
 func NewToolManager(ctx context.Context, skills []entity.AgentSkillUnion, logger *slog.Logger, genkit *genkit.Genkit, knowledgeService knowledge.Service, memoryService memory.Service) (Manager, error) {
 	s := &manager{
-		logger:               logger,
-		mcpClients:           make(map[string]*mcpclient.Client),
-		genkit:               genkit,
-		knowledgeService:     knowledgeService,
-		memoryService:        memoryService,
-		nativeSkillToolNames: make(map[string][]string),
-		usagePrompts:         make(map[string]string),
+		logger:           logger,
+		mcpClients:       make(map[string]*mcpclient.Client),
+		genkit:           genkit,
+		knowledgeService: knowledgeService,
+		memoryService:    memoryService,
+		skillToolNames:   make(map[string][]string),
+		usagePrompts:     make(map[string]string),
 	}
 
 	for _, skill := range skills {
@@ -115,16 +115,21 @@ func (m *manager) Close() {
 
 func (m *manager) GetToolsBySkill(ctx context.Context, skill entity.AgentSkillUnion) ([]ai.Tool, error) {
 	switch skill.Type {
-	case "llm":
-		tool := m.GetTool(skill.OfLLM.Name)
-		if tool == nil {
-			return nil, errors.Errorf("invalid tool name %s", skill.OfLLM.Name)
-		}
-		return []ai.Tool{tool}, nil
-	case "nativeTool":
-		toolNames, ok := m.nativeSkillToolNames[skill.OfNative.Name]
+	case "llm", "nativeTool":
+		skillName := func() string {
+			switch skill.Type {
+			case "llm":
+				return skill.OfLLM.Name
+			case "nativeTool":
+				return skill.OfNative.Name
+			default:
+				return ""
+			}
+		}()
+
+		toolNames, ok := m.skillToolNames[skillName]
 		if !ok || len(toolNames) == 0 {
-			return nil, errors.Errorf("no tools found for skill %s", skill.OfNative.Name)
+			return nil, errors.Errorf("no tools found for skill %s", skillName)
 		}
 		tools := make([]ai.Tool, 0, len(toolNames))
 		for _, toolName := range toolNames {

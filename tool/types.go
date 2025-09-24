@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"regexp"
 	"time"
 )
 
@@ -63,4 +64,10 @@ func (c *MCPServerConfig) GetTransport() MCPTransportType {
 		return MCPTransportStdio
 	}
 	return c.Transport
+}
+
+func CanBeUsedAsToolName(toolName string) bool {
+	// regexp: ([a-zA-Z0-9_-]{1,128})
+	re := regexp.MustCompile(`^[a-zA-Z0-9_-]{1,128}$`)
+	return re.MatchString(toolName)
 }
