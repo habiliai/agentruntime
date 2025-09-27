@@ -49,8 +49,7 @@ func TestProcessDocumentsFromPDF(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Decode test PDF
 	pdfData, err := base64.StdEncoding.DecodeString(testPDFBase64)
@@ -124,8 +123,7 @@ func TestProcessDocumentsFromPDF_InvalidInput(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	tests := []struct {
 		name        string
@@ -175,8 +173,7 @@ func TestExtractTextWithVisionLLM(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Simple 1x1 white pixel PNG (base64)
 	base64Image := "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
@@ -204,8 +201,7 @@ func TestExtractTextWIthVisionLLM_RealImage(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Simple 1x1 white pixel PNG (base64)
 	imageFile, err := os.ReadFile("testdata/page_1.jpg")
@@ -238,8 +234,7 @@ func BenchmarkProcessDocumentsFromPDF(b *testing.B) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(b, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Decode test PDF
 	pdfData, err := base64.StdEncoding.DecodeString(testPDFBase64)
@@ -277,8 +272,7 @@ func TestProcessDocumentsFromPDF_RealFile(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil)) // Use discard to reduce log output
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Open the real PDF file
 	pdfFile := bytes.NewReader(solanaWhitepaperPDF)
@@ -392,8 +386,7 @@ func TestProcessDocumentsFromPDF_Simple(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Use the simple test PDF
 	pdfData, err := base64.StdEncoding.DecodeString(testPDFBase64)
@@ -456,8 +449,7 @@ func TestProcessDocumentsFromPDF_Vision(t *testing.T) {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	reader := bytes.NewReader(solanaWhitepaperPDF)
 

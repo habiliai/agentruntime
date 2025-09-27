@@ -13,10 +13,7 @@ import (
 
 func TestMCPToolCall(t *testing.T) {
 	ctx := context.TODO()
-	g, err := genkit.Init(ctx)
-	if err != nil {
-		t.Fatalf("failed to create genkit: %v", err)
-	}
+	g := genkit.Init(ctx)
 
 	c, err := mcpclient.NewStdioMCPClient("npx", []string{}, "-y", "@modelcontextprotocol/server-filesystem", ".")
 	if err != nil {

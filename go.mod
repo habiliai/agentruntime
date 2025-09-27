@@ -4,7 +4,7 @@ go 1.24.1
 
 toolchain go1.24.3
 
-replace github.com/firebase/genkit/go => github.com/habiliai/genkit/go v0.2.2-0.20250828161946-6ad4e3a3c9b9
+replace github.com/firebase/genkit/go => github.com/habiliai/genkit/go v0.2.2-0.20250926033907-b5ca2d889df8
 
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
@@ -16,6 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
+	github.com/gosimple/slug v1.15.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/jcooky/go-din v0.1.3-0.20250527064037-12e6144ddc28
 	github.com/joho/godotenv v1.5.1
@@ -24,7 +25,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/mokiat/gog v0.15.0
-	github.com/openai/openai-go v0.1.0-alpha.65
+	github.com/openai/openai-go v1.8.2
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.51.0
 	github.com/spf13/cobra v1.9.1
@@ -53,7 +54,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sql-driver/mysql v1.9.0 // indirect
 	github.com/google/dotprompt/go v0.0.0-20250611200215-bb73406b05ca // indirect
-	github.com/gosimple/slug v1.15.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

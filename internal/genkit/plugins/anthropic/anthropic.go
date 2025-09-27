@@ -2,15 +2,14 @@ package anthropic
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/firebase/genkit/go/ai"
+	"github.com/firebase/genkit/go/core/api"
 	"github.com/firebase/genkit/go/genkit"
-	"github.com/habiliai/agentruntime/internal/genkit/plugins/internal/config"
 )
 
 const (
@@ -21,11 +20,18 @@ const (
 )
 
 var (
+	basicCap = ai.ModelSupports{
+		Multiturn:  true,
+		Tools:      true,
+		SystemRole: true,
+		Media:      true,
+	}
+
 	knownCaps = map[string]ai.ModelSupports{
-		"claude-opus-4-20250514":   config.Multimodal,
-		"claude-sonnet-4-20250514": config.Multimodal,
-		"claude-3-7-sonnet-latest": config.Multimodal,
-		"claude-3-5-haiku-latest":  config.Multimodal,
+		"claude-opus-4-20250514":   basicCap,
+		"claude-sonnet-4-20250514": basicCap,
+		"claude-3-7-sonnet-latest": basicCap,
+		"claude-3-5-haiku-latest":  basicCap,
 	}
 	defaultRequestTimeout = 10 * time.Minute
 	defaultModelParams    = map[string]struct {
@@ -71,7 +77,7 @@ var (
 	}
 )
 
-type Plugin struct {
+type Anthropic struct {
 	// The API key to access the service for Anthropic.
 	// If empty, the values of the environment variables ANTHROPIC_API_KEY will be consulted.
 	APIKey string
@@ -89,58 +95,53 @@ type Plugin struct {
 }
 
 var (
-	_ genkit.Plugin = (*Plugin)(nil)
+	_ api.Plugin = (*Anthropic)(nil)
 )
 
 // Name implements genkit.Plugin.
-func (p *Plugin) Name() string {
+func (a *Anthropic) Name() string {
 	return provider
 }
 
 // Init implements genkit.Plugin.
 // After calling Init, you may call [DefineModel] to create and register any additional generative models.
-func (p *Plugin) Init(_ context.Context, g *genkit.Genkit) (err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("%s.Init: %w", provider, err)
-		}
-	}()
-
-	apiKey := p.APIKey
+func (a *Anthropic) Init(_ context.Context) (actions []api.Action) {
+	apiKey := a.APIKey
 	if apiKey == "" {
 		apiKey = os.Getenv(apiKeyEnv)
 		if apiKey == "" {
-			return fmt.Errorf("the Anthropic API key not found in environment variable: %s", apiKeyEnv)
+			panic("the Anthropic API key not found in environment variable")
 		}
 	}
 
-	if p.RequestTimeout == 0 {
-		p.RequestTimeout = defaultRequestTimeout
+	if a.RequestTimeout == 0 {
+		a.RequestTimeout = defaultRequestTimeout
 	}
-	if p.MaxRetries == 0 {
-		p.MaxRetries = defaultMaxRetries
+	if a.MaxRetries == 0 {
+		a.MaxRetries = defaultMaxRetries
 	}
 
-	p.client = anthropic.NewClient(
+	a.client = anthropic.NewClient(
 		option.WithAPIKey(apiKey),
-		option.WithRequestTimeout(p.RequestTimeout),
-		option.WithMaxRetries(p.MaxRetries),
+		option.WithRequestTimeout(a.RequestTimeout),
+		option.WithMaxRetries(a.MaxRetries),
 		option.WithEnvironmentProduction(),
 	)
 
 	// Define models with simplified names as requested
-	DefineModel(g, &p.client, labelPrefix, provider, "claude-4-opus", "claude-opus-4-20250514", knownCaps["claude-opus-4-20250514"])
-	DefineModel(g, &p.client, labelPrefix, provider, "claude-4-sonnet", "claude-sonnet-4-20250514", knownCaps["claude-sonnet-4-20250514"])
+	actions = append(actions,
+		a.DefineModel(labelPrefix, provider, "claude-4-opus", "claude-opus-4-20250514", knownCaps["claude-opus-4-20250514"]).(api.Action),
+		a.DefineModel(labelPrefix, provider, "claude-4-sonnet", "claude-sonnet-4-20250514", knownCaps["claude-sonnet-4-20250514"]).(api.Action),
+		// Also define Claude 3.7 and 3.5 models as alternatives
+		a.DefineModel(labelPrefix, provider, "claude-3.7-sonnet", "claude-3-7-sonnet-latest", knownCaps["claude-3-7-sonnet-latest"]).(api.Action),
+		a.DefineModel(labelPrefix, provider, "claude-3.5-haiku", "claude-3-5-haiku-latest", knownCaps["claude-3-5-haiku-latest"]).(api.Action),
+	)
 
-	// Also define Claude 3.7 and 3.5 models as alternatives
-	DefineModel(g, &p.client, labelPrefix, provider, "claude-3.7-sonnet", "claude-3-7-sonnet-latest", knownCaps["claude-3-7-sonnet-latest"])
-	DefineModel(g, &p.client, labelPrefix, provider, "claude-3.5-haiku", "claude-3-5-haiku-latest", knownCaps["claude-3-5-haiku-latest"])
-
-	return nil
+	return
 }
 
 // Model returns the [ai.Model] with the given name.
 // It returns nil if the model was not defined.
 func Model(g *genkit.Genkit, name string) ai.Model {
-	return genkit.LookupModel(g, provider, name)
+	return genkit.LookupModel(g, provider+"/"+name)
 }

@@ -33,8 +33,7 @@ func TestConversationSummarizer_CountTokens(t *testing.T) {
 		AnthropicAPIKey: anthropicKey,
 		OpenAIAPIKey:    openaiKey,
 	}
-	g, err := genkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := genkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	// Test token counting
 	testCases := []struct {
@@ -101,8 +100,7 @@ func TestConversationSummarizer_ProcessConversationHistory(t *testing.T) {
 		AnthropicAPIKey: anthropicKey,
 		OpenAIAPIKey:    openaiKey,
 	}
-	g, err := genkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := genkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	testConfig := &config.ModelConfig{
 		AnthropicAPIKey: anthropicKey,
@@ -239,8 +237,7 @@ func TestConversationSummarizer_findSplitPoint(t *testing.T) {
 			ModelForSummary:             "openai/gpt-5-mini",
 		},
 	}
-	g, err := genkit.NewGenkit(ctx, testConfig, logger, false)
-	require.NoError(t, err)
+	g := genkit.NewGenkit(ctx, testConfig, logger, false)
 
 	summarizer := NewConversationSummarizer(g, &testConfig.ConversationSummary)
 
@@ -300,8 +297,7 @@ func TestConversationSummarizer_truncateToTokenLimit(t *testing.T) {
 			ModelForSummary:             "openai/gpt-5-mini",
 		},
 	}
-	g, err := genkit.NewGenkit(ctx, testConfig, logger, false)
-	require.NoError(t, err)
+	g := genkit.NewGenkit(ctx, testConfig, logger, false)
 
 	summarizer := NewConversationSummarizer(g, &testConfig.ConversationSummary)
 

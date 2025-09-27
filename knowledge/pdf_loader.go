@@ -304,9 +304,9 @@ func ProcessDocumentsFromPDF(
 // ExtractTextWithVisionLLM uses Vision LLM to extract text from an image
 func ExtractTextWithVisionLLM(ctx context.Context, g *genkit.Genkit, base64Image string, pageNum int) (string, error) {
 	// Use a vision-capable model (GPT-4o or Claude 4 Sonnet)
-	model := genkit.LookupModel(g, "anthropic", "claude-4-sonnet")
+	model := genkit.LookupModel(g, "anthropic/claude-4-sonnet")
 	if model == nil {
-		model = genkit.LookupModel(g, "openai", "gpt-5-mini")
+		model = genkit.LookupModel(g, "openai/gpt-5-mini")
 	}
 	if model == nil {
 		return "", errors.New("No vision-capable model available")

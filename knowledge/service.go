@@ -58,10 +58,7 @@ func NewServiceWithStore(
 	logger *slog.Logger,
 	store Store,
 ) (Service, error) {
-	genkit, err := xgenkit.NewGenkit(ctx, modelConfig, logger, modelConfig.TraceVerbose)
-	if err != nil {
-		return nil, err
-	}
+	genkit := xgenkit.NewGenkit(ctx, modelConfig, logger, modelConfig.TraceVerbose)
 
 	// Create embedder for RAG functionality
 	embedder := NewEmbedder(conf.NomicAPIKey)

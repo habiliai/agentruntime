@@ -17,10 +17,6 @@ import (
 // The tests here only work with an API key set to a valid value.
 var apiKey = flag.String("key", "", "XAI API key")
 
-// We can't test the DefineAll functions along with the other tests because
-// we get duplicate definitions of models.
-var testAll = flag.Bool("all", false, "test DefineAllXXX functions")
-
 func TestLive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping test in short mode")
@@ -29,16 +25,11 @@ func TestLive(t *testing.T) {
 	if *apiKey == "" {
 		t.Skipf("no -key provided")
 	}
-	if *testAll {
-		t.Skip("-all provided")
-	}
+
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&XAI{
 		APIKey: *apiKey,
 	}))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	model := Model(g, "grok-3-mini")
 

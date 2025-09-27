@@ -4,13 +4,13 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/firebase/genkit/go/core/api"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/firebase/genkit/go/plugins/compat_oai/openai"
 	"github.com/habiliai/agentruntime/config"
 	"github.com/habiliai/agentruntime/internal/genkit/plugins/anthropic"
 	"github.com/habiliai/agentruntime/internal/genkit/plugins/xai"
 	"github.com/jcooky/go-din"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -22,9 +22,9 @@ func NewGenkit(
 	modelConfig *config.ModelConfig,
 	logger *slog.Logger,
 	traceVerbose bool,
-) (*genkit.Genkit, error) {
+) *genkit.Genkit {
 	var (
-		plugins      []genkit.Plugin
+		plugins      []api.Plugin
 		defaultModel string
 	)
 	{
@@ -38,7 +38,7 @@ func NewGenkit(
 	}
 	{
 		if modelConfig != nil && modelConfig.XAIAPIKey != "" {
-			plugins = append(plugins, &xai.Plugin{
+			plugins = append(plugins, &xai.XAI{
 				APIKey: modelConfig.XAIAPIKey,
 			})
 			defaultModel = "xai/grok-3"
@@ -47,26 +47,18 @@ func NewGenkit(
 	}
 	{
 		if modelConfig != nil && modelConfig.AnthropicAPIKey != "" {
-			plugins = append(plugins, &anthropic.Plugin{
+			plugins = append(plugins, &anthropic.Anthropic{
 				APIKey: modelConfig.AnthropicAPIKey,
 			})
 			defaultModel = "anthropic/claude-4-sonnet"
 			logger.Info("Loaded Anthropic plugin", "model", defaultModel)
 		}
 	}
-	g, err := genkit.Init(
+	g := genkit.Init(
 		ctx,
 		genkit.WithPlugins(plugins...),
 		genkit.WithDefaultModel(defaultModel),
 	)
 
-	genkit.RegisterSpanProcessor(
-		g,
-		&loggingSpanProcessor{
-			verbose: traceVerbose,
-			logger:  logger,
-		},
-	)
-
-	return g, errors.Wrapf(err, "failed to init genkit")
+	return g
 }

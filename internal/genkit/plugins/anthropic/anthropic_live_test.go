@@ -34,10 +34,9 @@ func TestLive_GenerateText(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	tests := []struct {
 		name      string
@@ -124,10 +123,9 @@ func TestLive_GenerateWithStreaming(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -176,10 +174,9 @@ func TestLive_GenerateWithImage(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -223,10 +220,9 @@ func TestLive_GenerateWithSystemMessage(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -273,10 +269,9 @@ func TestLive_GenerateWithReasoning(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	tests := []struct {
 		name        string
@@ -414,10 +409,9 @@ func TestLive_GenerateWithReasoningStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	// Use claude-3.7-sonnet which supports reasoning
 	model := anthropic.Model(g, "claude-3.7-sonnet")
@@ -517,10 +511,9 @@ func TestLive_Claude4AutomaticReasoning(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	tests := []struct {
 		name            string
@@ -638,10 +631,9 @@ func TestLive_Claude4ExplicitReasoningControl(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	tests := []struct {
 		name             string
@@ -770,10 +762,9 @@ func TestLive_Claud4ThinkingStreamingCompareGenerate(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-4-sonnet")
 	require.NotNil(t, model)
@@ -816,10 +807,9 @@ func TestLive_GenerateWithToolCallStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -928,10 +918,9 @@ func TestLive_GenerateWithComplexToolCallStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -1064,10 +1053,9 @@ func TestLive_GenerateWithMultipleToolCallsStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -1168,10 +1156,9 @@ func TestLive_GenerateWithWebSearchStreaming(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)
@@ -1344,10 +1331,9 @@ func TestLive_GenerateWithPDF(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	g, err := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Plugin{
+	g := genkit.Init(ctx, genkit.WithPlugins(&anthropic.Anthropic{
 		APIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}))
-	require.NoError(t, err)
 
 	model := anthropic.Model(g, "claude-3.5-haiku")
 	require.NotNil(t, model)

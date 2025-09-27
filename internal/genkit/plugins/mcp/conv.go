@@ -3,14 +3,13 @@ package mcp
 import (
 	"encoding/json"
 
-	"github.com/invopop/jsonschema"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 func makeInputSchema(
 	schema mcp.ToolInputSchema,
-) (*jsonschema.Schema, error) {
-	var inputSchema jsonschema.Schema
+) (map[string]any, error) {
+	var inputSchema map[string]any
 
 	schemaJson, err := json.Marshal(schema)
 	if err != nil {
@@ -21,5 +20,5 @@ func makeInputSchema(
 		return nil, err
 	}
 
-	return &inputSchema, nil
+	return inputSchema, nil
 }

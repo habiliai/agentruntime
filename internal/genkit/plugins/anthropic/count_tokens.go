@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (p *Plugin) CountTokens(ctx context.Context, g *genkit.Genkit, msgs []*ai.Message, docs []*ai.Document, toolDefs []ai.Tool) (int, error) {
+func (a *Anthropic) CountTokens(ctx context.Context, g *genkit.Genkit, msgs []*ai.Message, docs []*ai.Document, toolDefs []ai.Tool) (int, error) {
 	messages, systems, err := convertMessages(msgs, docs, true)
 	if err != nil {
 		return 0, err
@@ -46,7 +46,7 @@ func (p *Plugin) CountTokens(ctx context.Context, g *genkit.Genkit, msgs []*ai.M
 		params.Tools = tools
 	}
 
-	count, err := p.client.Beta.Messages.CountTokens(
+	count, err := a.client.Beta.Messages.CountTokens(
 		ctx,
 		params,
 	)
@@ -58,7 +58,7 @@ func (p *Plugin) CountTokens(ctx context.Context, g *genkit.Genkit, msgs []*ai.M
 }
 
 func CountTokens(ctx context.Context, g *genkit.Genkit, msgs []*ai.Message, docs []*ai.Document, toolDefs []ai.Tool) (int, error) {
-	anthropicPlugin, ok := genkit.LookupPlugin(g, provider).(*Plugin)
+	anthropicPlugin, ok := genkit.LookupPlugin(g, provider).(*Anthropic)
 	if anthropicPlugin == nil || !ok {
 		return 0, errors.Errorf("plugin %s is not a %T", provider, anthropicPlugin)
 	}

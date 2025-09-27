@@ -191,8 +191,7 @@ func TestProcessKnowledgeFromMultipleDocuments(t *testing.T) {
 		OpenAIAPIKey: "test-key",
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	embedder := knowledge.NewEmbedder(nomicApiKey)
 	knowledgeConfig := config.NewKnowledgeConfig()
@@ -435,8 +434,7 @@ func TestProcessDocumentsByType_UnknownType(t *testing.T) {
 		OpenAIAPIKey: "test-key",
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	g, err := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
-	require.NoError(t, err)
+	g := xgenkit.NewGenkit(ctx, modelConfig, logger, false)
 
 	embedder := knowledge.NewEmbedder(nomicApiKey)
 	knowledgeConfig := config.NewKnowledgeConfig()

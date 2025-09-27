@@ -329,12 +329,11 @@ func TestInMemoryStore_SearchWithGenkitEmbeddings_Live(t *testing.T) {
 	store := memory.NewInMemoryStore()
 	ctx := t.Context()
 
-	g, err := internalgenkit.NewGenkit(ctx, &config.ModelConfig{
+	g := internalgenkit.NewGenkit(ctx, &config.ModelConfig{
 		OpenAIAPIKey: openaiKey,
 	}, slog.Default(), false)
-	require.NoError(t, err, "Failed to create AgentRuntime")
 
-	embedder := genkit.LookupEmbedder(g, "openai", "text-embedding-3-small")
+	embedder := genkit.LookupEmbedder(g, "openai/text-embedding-3-small")
 
 	// Test texts with different semantic meanings
 	testTexts := []string{
@@ -346,7 +345,7 @@ func TestInMemoryStore_SearchWithGenkitEmbeddings_Live(t *testing.T) {
 	}
 
 	// Generate embeddings using genkit
-	embeddings, err := ai.Embed(ctx, embedder, ai.WithTextDocs(testTexts...))
+	embeddings, err := genkit.Embed(ctx, g, ai.WithEmbedder(embedder), ai.WithTextDocs(testTexts...))
 	require.NoError(t, err, "Failed to generate embeddings")
 	require.Len(t, embeddings.Embeddings, len(testTexts), "Should have embedding for each text")
 
@@ -370,7 +369,7 @@ func TestInMemoryStore_SearchWithGenkitEmbeddings_Live(t *testing.T) {
 
 	// Test search with a query similar to the first text
 	queryText := "A cat is sitting"
-	queryEmbedding, err := ai.Embed(ctx, embedder, ai.WithTextDocs(queryText))
+	queryEmbedding, err := genkit.Embed(ctx, g, ai.WithEmbedder(embedder), ai.WithTextDocs(queryText))
 	require.NoError(t, err, "Failed to generate query embedding")
 	require.Len(t, queryEmbedding.Embeddings, 1, "Should have one query embedding")
 
@@ -401,7 +400,7 @@ func TestInMemoryStore_SearchWithGenkitEmbeddings_Live(t *testing.T) {
 
 	// Test with a completely different query
 	dogQueryText := "Dogs making noise"
-	dogQueryEmbedding, err := ai.Embed(ctx, embedder, ai.WithTextDocs(dogQueryText))
+	dogQueryEmbedding, err := genkit.Embed(ctx, g, ai.WithEmbedder(embedder), ai.WithTextDocs(dogQueryText))
 	require.NoError(t, err, "Failed to generate dog query embedding")
 
 	dogResults, err := store.Search(ctx, dogQueryText, dogQueryEmbedding.Embeddings[0].Embedding, 3)

@@ -77,11 +77,9 @@ func NewAgentRuntime(ctx context.Context, optionFuncs ...Option) (*AgentRuntime,
 		return nil, errors.New("model config is required")
 	}
 
-	g, err := genkit.NewGenkit(ctx, e.modelConfig, e.logger, e.modelConfig.TraceVerbose)
-	if err != nil {
-		return nil, err
-	}
+	g := genkit.NewGenkit(ctx, e.modelConfig, e.logger, e.modelConfig.TraceVerbose)
 
+	var err error
 	if e.knowledgeService == nil {
 		e.knowledgeService, err = knowledge.NewServiceWithStore(ctx, e.knowledgeConfig, e.modelConfig, e.logger, knowledge.NewInMemoryStore())
 		if err != nil {

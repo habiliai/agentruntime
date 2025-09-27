@@ -21,13 +21,13 @@ type TestSuite struct {
 func (s *TestSuite) SetupTest() {
 	s.Suite.SetupTest()
 
-	g, err := genkit.NewGenkit(
+	g := genkit.NewGenkit(
 		s,
 		nil,
 		slog.Default(),
 		false,
 	)
-	s.Require().NoError(err)
+	var err error
 	s.toolManager, err = tool.NewToolManager(
 		s,
 		[]entity.AgentSkillUnion{

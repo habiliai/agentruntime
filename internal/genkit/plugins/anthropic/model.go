@@ -13,7 +13,7 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/shared/constant"
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/core"
-	"github.com/firebase/genkit/go/genkit"
+	"github.com/firebase/genkit/go/core/api"
 	"github.com/habiliai/agentruntime/internal/version"
 	"github.com/pkg/errors"
 )
@@ -37,36 +37,32 @@ func HttpGet(url string) (*http.Response, error) {
 }
 
 // DefineModel creates and registers a new generative model with Genkit.
-func DefineModel(g *genkit.Genkit, client *anthropic.Client, labelPrefix, provider, modelName, apiModelName string, caps ai.ModelSupports) ai.Model {
-	meta := &ai.ModelInfo{
-		Label:    labelPrefix + " - " + modelName,
-		Supports: &caps,
-	}
-
-	return genkit.DefineModel(
-		g,
-		provider,
-		modelName,
-		meta,
+func (a *Anthropic) DefineModel(labelPrefix, provider, modelName, apiModelName string, caps ai.ModelSupports) ai.Model {
+	return ai.NewModel(
+		api.NewName(provider, modelName),
+		&ai.ModelOptions{
+			Label:    labelPrefix + " - " + modelName,
+			Supports: &caps,
+		},
 		func(ctx context.Context, req *ai.ModelRequest, cb core.StreamCallback[*ai.ModelResponseChunk]) (*ai.ModelResponse, error) {
 			if cb == nil {
 				// Non-streaming generation
-				return generate(ctx, client, req, apiModelName)
+				return a.generate(ctx, req, apiModelName)
 			}
 			// Streaming generation
-			return generateStream(ctx, client, req, apiModelName, cb)
+			return a.generateStream(ctx, req, apiModelName, cb)
 		},
 	)
 }
 
-func generate(ctx context.Context, client *anthropic.Client, genRequest *ai.ModelRequest, apiModelName string) (*ai.ModelResponse, error) {
+func (a *Anthropic) generate(ctx context.Context, genRequest *ai.ModelRequest, apiModelName string) (*ai.ModelResponse, error) {
 	params, err := buildMessageParams(genRequest, apiModelName, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Use standard Messages API (which supports extended thinking for Claude 4 models)
-	resp, err := client.Beta.Messages.New(ctx, params)
+	resp, err := a.client.Beta.Messages.New(ctx, params)
 	if err != nil {
 		return nil, errors.Wrapf(err, "anthropic message generation failed")
 	}
@@ -74,14 +70,14 @@ func generate(ctx context.Context, client *anthropic.Client, genRequest *ai.Mode
 	return translateResponse(*resp, genRequest)
 }
 
-func generateStream(ctx context.Context, client *anthropic.Client, genRequest *ai.ModelRequest, apiModelName string, cb core.StreamCallback[*ai.ModelResponseChunk]) (*ai.ModelResponse, error) {
+func (a *Anthropic) generateStream(ctx context.Context, genRequest *ai.ModelRequest, apiModelName string, cb core.StreamCallback[*ai.ModelResponseChunk]) (*ai.ModelResponse, error) {
 	params, err := buildMessageParams(genRequest, apiModelName, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Use standard streaming API
-	stream := client.Beta.Messages.NewStreaming(ctx, params)
+	stream := a.client.Beta.Messages.NewStreaming(ctx, params)
 	defer stream.Close()
 
 	type ToolUsePart struct {

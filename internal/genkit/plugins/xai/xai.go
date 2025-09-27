@@ -2,80 +2,101 @@ package xai
 
 import (
 	"context"
-	"fmt"
-	"github.com/firebase/genkit/go/ai"
-	"github.com/firebase/genkit/go/genkit"
-	"github.com/habiliai/agentruntime/internal/genkit/plugins/internal/config"
-	"github.com/habiliai/agentruntime/internal/genkit/plugins/internal/openaiapi"
-	goopenai "github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
 	"os"
+
+	"github.com/firebase/genkit/go/ai"
+	"github.com/firebase/genkit/go/core/api"
+	"github.com/firebase/genkit/go/genkit"
+	"github.com/firebase/genkit/go/plugins/compat_oai"
+	"github.com/openai/openai-go/option"
 )
 
 const (
-	provider    = "xai"
-	labelPrefix = "XAI"
-	apiKeyEnv   = "XAI_API_KEY"
-	baseUrl     = "https://api.x.ai/v1"
+	provider  = "xai"
+	apiKeyEnv = "XAI_API_KEY"
+	baseUrl   = "https://api.x.ai/v1"
 )
 
 var (
-	knownCaps = map[string]ai.ModelSupports{
-		"grok-3":           config.Multimodal,
-		"grok-3-fast":      config.Multimodal,
-		"grok-3-mini":      config.BasicText,
-		"grok-3-mini-fast": config.BasicText,
-		"grok-2-vision":    config.Multimodal,
-		"grok-2-image":     config.Multimodal,
+	grok3 = ai.ModelOptions{
+		Label:    "XAI - grok-3",
+		Supports: &compat_oai.BasicText,
+		Stage:    ai.ModelStageStable,
+		Versions: []string{"grok-3"},
+	}
+	grok3Mini = ai.ModelOptions{
+		Label:    "XAI - grok-3-mini",
+		Supports: &compat_oai.BasicText,
+		Stage:    ai.ModelStageStable,
+		Versions: []string{"grok-3-mini"},
+	}
+	grok4 = ai.ModelOptions{
+		Label:    "XAI - grok-4",
+		Supports: &compat_oai.Multimodal,
+		Stage:    ai.ModelStageStable,
+		Versions: []string{"grok-4", "grok-4-latest"},
+	}
+	grok4FastReasoning = ai.ModelOptions{
+		Label:    "XAI - grok-4-fast-reasoning",
+		Supports: &compat_oai.Multimodal,
+		Stage:    ai.ModelStageStable,
+		Versions: []string{"grok-4-fast-reasoning", "grok-4-fast-reasoning-latest"},
+	}
+	grok4FastNonReasoning = ai.ModelOptions{
+		Label:    "XAI - grok-4-fast-non-reasoning",
+		Supports: &compat_oai.Multimodal,
+		Stage:    ai.ModelStageStable,
+		Versions: []string{"grok-4-fast-non-reasoning", "grok-4-fast-non-reasoning-latest"},
 	}
 )
 
-type Plugin struct {
+type XAI struct {
 	// The API key to access the service for XAI.
 	// If empty, the values of the environment variables XAI_API_KEY will be consulted.
 	APIKey string
+
+	oai *compat_oai.OpenAICompatible
 }
 
 var (
-	_ genkit.Plugin = (*Plugin)(nil)
+	_ api.Plugin = (*XAI)(nil)
 )
 
 // Name implements genkit.Plugin.
-func (o *Plugin) Name() string {
+func (x *XAI) Name() string {
 	return provider
 }
 
 // Init implements genkit.Plugin.
 // After calling Init, you may call [DefineModel] to create and register any additional generative models.
-func (o *Plugin) Init(_ context.Context, g *genkit.Genkit) (err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("%s.Init: %w", provider, err)
-		}
-	}()
-
-	apiKey := o.APIKey
+func (x *XAI) Init(ctx context.Context) []api.Action {
+	apiKey := x.APIKey
 	if apiKey == "" {
 		apiKey = os.Getenv(apiKeyEnv)
 		if apiKey == "" {
-			return fmt.Errorf("XAI API key not found in environment variable: %s", apiKeyEnv)
+			panic("XAI API key not found in environment variable")
 		}
 	}
 
-	client := goopenai.NewClient(
-		option.WithBaseURL(baseUrl),
-		option.WithAPIKey(apiKey),
-	)
-
-	for model, caps := range knownCaps {
-		openaiapi.DefineModel(g, client, labelPrefix, provider, model, caps)
+	x.oai = &compat_oai.OpenAICompatible{
+		Opts: []option.RequestOption{
+			option.WithBaseURL(baseUrl),
+			option.WithAPIKey(apiKey),
+		},
 	}
+	actions := x.oai.Init(ctx)
 
-	return nil
+	return append(actions,
+		x.oai.DefineModel(provider, "grok-3", grok3).(api.Action),
+		x.oai.DefineModel(provider, "grok-3-mini", grok3Mini).(api.Action),
+		x.oai.DefineModel(provider, "grok-4", grok4).(api.Action),
+		x.oai.DefineModel(provider, "grok-4-fast-reasoning", grok4FastReasoning).(api.Action),
+		x.oai.DefineModel(provider, "grok-4-fast-non-reasoning", grok4FastNonReasoning).(api.Action),
+	)
 }
 
 // Model returns the [ai.Model] with the given name.
 // It returns nil if the model was not defined.
 func Model(g *genkit.Genkit, name string) ai.Model {
-	return genkit.LookupModel(g, provider, name)
+	return genkit.LookupModel(g, api.NewName(provider, name))
 }

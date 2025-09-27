@@ -49,12 +49,9 @@ var (
 )
 
 func NewServiceWithStore(ctx context.Context, store Store, modelConfig *config.ModelConfig, memoryConfig *config.MemoryConfig, logger *slog.Logger) (Service, error) {
-	g, err := internalgenkit.NewGenkit(ctx, modelConfig, logger, modelConfig.TraceVerbose)
-	if err != nil {
-		return nil, err
-	}
+	g := internalgenkit.NewGenkit(ctx, modelConfig, logger, modelConfig.TraceVerbose)
 
-	embedder := genkit.LookupEmbedder(g, "openai", "text-embedding-3-small")
+	embedder := genkit.LookupEmbedder(g, "openai/text-embedding-3-small")
 
 	return &service{store: store, embedder: embedder, genkit: g, memoryConfig: memoryConfig, logger: logger}, nil
 }

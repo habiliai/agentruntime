@@ -55,11 +55,10 @@ func (s *EngineTestSuite) TestMissmatchStreamingAndOutput() {
 		},
 	}
 
-	g, err := genkitinternal.NewGenkit(s, &config.ModelConfig{
+	g := genkitinternal.NewGenkit(s, &config.ModelConfig{
 		OpenAIAPIKey:    os.Getenv("OPENAI_API_KEY"),
 		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}, slog.Default(), true)
-	s.Require().NoError(err)
 
 	memoryService, err := memory.NewService(s, &config.ModelConfig{
 		OpenAIAPIKey:    os.Getenv("OPENAI_API_KEY"),
