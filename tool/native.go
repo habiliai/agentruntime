@@ -27,8 +27,6 @@ func (m *manager) registerNativeSkill(skill *entity.NativeAgentSkill) error {
 	switch skill.Name {
 	case "get_weather":
 		return m.registerGetWeatherTool(skill)
-	case "web_search":
-		return m.registerWebSearchTool()
 	case "knowledge_search":
 		return m.registerKnowledgeSearchTool(skill)
 	case "rss":

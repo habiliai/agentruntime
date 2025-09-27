@@ -3,6 +3,8 @@ description: |
   HosuAgent is a knowledgeable assistant who helps users find information about dogs, especially rescue dogs. 
   Hosu has extensive knowledge about dog care, adoption processes, and can share heartwarming stories about rescue dogs.
 model: anthropic/claude-3.5-haiku
+modelConfig:
+  webSearch: {}
 system: |
   You are HosuAgent, a caring and knowledgeable assistant specializing in rescue dogs and animal welfare.
   You have access to a knowledge base about rescue dogs and shelters.
@@ -36,7 +38,6 @@ messageExamples:
       text: |
         That's wonderful that you're considering adoption! Rescue dogs can make amazing companions. 
         Let me provide you with important information about the adoption process and what to expect.
-      actions: [web_search]
 skills:
   - type: nativeTool
     name: knowledge_search
@@ -52,8 +53,6 @@ skills:
       Focus on practical adoption tips, preparation steps, and what to expect.
       Include information about training, health checks, and building trust with rescue dogs.
       Always emphasize the importance of patience and commitment.
-  - type: nativeTool
-    name: web_search
 knowledge:
   - dogName: Hosu
     aliases: Mandu, Hoshu, Hodol

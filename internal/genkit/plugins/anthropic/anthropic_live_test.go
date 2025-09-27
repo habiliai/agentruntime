@@ -324,13 +324,13 @@ func TestLive_GenerateWithReasoning(t *testing.T) {
 
 			config := struct {
 				ai.GenerationCommonConfig
-				anthropic.ExtendedThinkingConfig
+				anthropic.AnthropicConfig
 			}{
 				GenerationCommonConfig: ai.GenerationCommonConfig{
 					MaxOutputTokens: 8192, // Large enough to support reasoning budget (8192 * 0.15 = 1228 > 1024, leaving 6963 for actual output)
 					Temperature:     0.0,
 				},
-				ExtendedThinkingConfig: anthropic.ExtendedThinkingConfig{
+				AnthropicConfig: anthropic.AnthropicConfig{
 					ExtendedThinkingEnabled:     tt.enabled,
 					ExtendedThinkingBudgetRatio: tt.budgetRatio,
 				},
@@ -423,13 +423,13 @@ func TestLive_GenerateWithReasoningStreaming(t *testing.T) {
 
 	config := struct {
 		ai.GenerationCommonConfig
-		anthropic.ExtendedThinkingConfig
+		anthropic.AnthropicConfig
 	}{
 		GenerationCommonConfig: ai.GenerationCommonConfig{
 			MaxOutputTokens: 8192, // Large enough to support reasoning budget (8192 * 0.15 = 1228 > 1024, leaving 6963 for actual output)
 			Temperature:     0.0,
 		},
-		ExtendedThinkingConfig: anthropic.ExtendedThinkingConfig{
+		AnthropicConfig: anthropic.AnthropicConfig{
 			ExtendedThinkingEnabled:     true,
 			ExtendedThinkingBudgetRatio: 0.25, // 25% of 8192 = 2048 tokens for reasoning, 6144 for actual output
 		},
@@ -1167,22 +1167,6 @@ func TestLive_GenerateWithWebSearchStreaming(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	// Define web search tool
-	webSearchTool := &ai.ToolDefinition{
-		Name:        "web_search",
-		Description: "Search the web for current information",
-		InputSchema: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The search query",
-				},
-			},
-			"required": []string{"query"},
-		},
-	}
-
 	req := &ai.ModelRequest{
 		Messages: []*ai.Message{
 			{
@@ -1192,11 +1176,13 @@ func TestLive_GenerateWithWebSearchStreaming(t *testing.T) {
 				},
 			},
 		},
-		Config: &ai.GenerationCommonConfig{
-			MaxOutputTokens: 2000,
-			Temperature:     0.0,
+		Config: &anthropic.AnthropicConfig{
+			GenerationCommonConfig: ai.GenerationCommonConfig{
+				MaxOutputTokens: 2000,
+				Temperature:     0.0,
+			},
+			WebSearchConfig: &anthropic.WebSearchConfig{},
 		},
-		Tools: []*ai.ToolDefinition{webSearchTool},
 	}
 
 	var streamedChunks []*ai.ModelResponseChunk

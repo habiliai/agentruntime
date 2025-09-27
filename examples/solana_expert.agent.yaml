@@ -4,6 +4,8 @@ description: |
   It has comprehensive knowledge about Solana's architecture, consensus mechanism, and technical details from the official whitepaper.
   It can answer questions about Solana's design philosophy, technical implementation, and innovative features.
 model: anthropic/claude-3.5-haiku
+modelConfig:
+  webSearch: {}
 system: |
   You are SolanaExpert, a technical blockchain specialist with deep understanding of Solana's architecture and design.
   You have access to the complete Solana whitepaper and can provide detailed technical explanations.
@@ -63,7 +65,7 @@ messageExamples:
         Based on the Solana whitepaper, I can explain the fundamental architectural differences between Solana and Ethereum.
 
         The key differences include consensus mechanisms, transaction processing models, and scalability approaches. Let me provide a detailed comparison based on Solana's design principles.
-      actions: [knowledge_search, web_search]
+      actions: [knowledge_search]
 skills:
   - type: nativeTool
     name: knowledge_search
@@ -75,8 +77,6 @@ skills:
       Explain complex blockchain concepts in accessible terms.
       Provide code examples when relevant.
       Compare with other blockchain architectures when helpful.
-  - type: nativeTool
-    name: web_search
 metadata:
   version: '1.0'
   lastUpdated: '2024-01-15'

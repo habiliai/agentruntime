@@ -217,46 +217,25 @@ func buildMessageParams(genRequest *ai.ModelRequest, apiModelName string, downlo
 		return anthropic.BetaMessageNewParams{}, err
 	}
 
-	defaultParams, ok := defaultModelParams[apiModelName]
+	config, ok := defaultModelParams[apiModelName]
 	if !ok {
 		return anthropic.BetaMessageNewParams{}, errors.Errorf("model %s not found", apiModelName)
+	}
+
+	if err := config.Unmarshal(genRequest.Config); err != nil {
+		return anthropic.BetaMessageNewParams{}, errors.Wrapf(err, "failed to unmarshal config")
 	}
 
 	params := anthropic.BetaMessageNewParams{
 		Model:    anthropic.Model(apiModelName),
 		Messages: messages,
-		Betas: []anthropic.AnthropicBeta{
-			anthropic.AnthropicBetaContext1m2025_08_07,
-			anthropic.AnthropicBetaInterleavedThinking2025_05_14,
-		},
-		System: systems,
+		System:   systems,
 	}
-
-	if genRequest.Config == nil {
-		genRequest.Config = map[string]any{}
+	if config.EnableContext1M {
+		params.Betas = append(params.Betas, anthropic.AnthropicBetaContext1m2025_08_07)
 	}
-
-	// Handle generation config
-	jsonBytes, err := json.Marshal(genRequest.Config)
-	if err != nil {
-		return anthropic.BetaMessageNewParams{}, err
-	}
-
-	// Extract and apply extended thinking config
-	type configWithExtendedThinking struct {
-		ai.GenerationCommonConfig
-		ExtendedThinkingConfig
-	}
-
-	// Start with defaults
-	config := configWithExtendedThinking{
-		GenerationCommonConfig: defaultParams.GenerationCommonConfig,
-		ExtendedThinkingConfig: defaultParams.ExtendedThinkingConfig,
-	}
-
-	// Unmarshal user config - this will only override provided fields
-	if err := json.Unmarshal(jsonBytes, &config); err != nil {
-		return anthropic.BetaMessageNewParams{}, errors.Wrapf(err, "failed to unmarshal config")
+	if config.EnableInterleavedThinking {
+		params.Betas = append(params.Betas, anthropic.AnthropicBetaInterleavedThinking2025_05_14)
 	}
 
 	// Apply basic config
@@ -298,18 +277,17 @@ func buildMessageParams(genRequest *ai.ModelRequest, apiModelName string, downlo
 	if len(genRequest.Tools) > 0 {
 		tools := make([]anthropic.BetaToolUnionParam, len(genRequest.Tools))
 		for i, tool := range genRequest.Tools {
-			switch tool.Name {
-			case "web_search":
-				tools[i] = anthropic.BetaToolUnionParam{
-					OfWebSearchTool20250305: &anthropic.BetaWebSearchTool20250305Param{
-						MaxUses: anthropic.Int(99),
-					},
-				}
-			default:
-				tools[i] = convertTool(tool)
-			}
+			tools[i] = convertTool(tool)
 		}
 		params.Tools = tools
+	}
+
+	if config.WebSearchConfig != nil {
+		params.Tools = append(params.Tools, anthropic.BetaToolUnionParam{
+			OfWebSearchTool20250305: &anthropic.BetaWebSearchTool20250305Param{
+				MaxUses: anthropic.Int(config.WebSearchConfig.MaxUses),
+			},
+		})
 	}
 
 	return params, nil

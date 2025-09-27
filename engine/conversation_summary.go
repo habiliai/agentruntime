@@ -84,7 +84,7 @@ func (cs *ConversationSummarizer) ProcessConversationHistory(ctx context.Context
 	}
 
 	// Determine split point for summarization
-	splitPoint := cs.findSplitPoint(promptValues)
+	splitPoint := cs.findSplitPoint(ctx, promptValues)
 
 	if splitPoint <= 0 {
 		// Can't summarize, just truncate (accounting for request files)
@@ -116,7 +116,7 @@ func (cs *ConversationSummarizer) ProcessConversationHistory(ctx context.Context
 }
 
 // findSplitPoint finds the optimal point to split conversations for summarization
-func (cs *ConversationSummarizer) findSplitPoint(promptValues *ChatPromptValues) int {
+func (cs *ConversationSummarizer) findSplitPoint(ctx context.Context, promptValues *ChatPromptValues) int {
 	totalConversations := len(promptValues.RecentConversations)
 
 	// Keep at least 1/3 of conversations as recent
@@ -138,7 +138,7 @@ func (cs *ConversationSummarizer) findSplitPoint(promptValues *ChatPromptValues)
 	// Find the split point that keeps recent conversations under token limit
 	for splitPoint := maxSplitPoint; splitPoint > 0; splitPoint-- {
 		recentConversations := promptValues.RecentConversations[splitPoint:]
-		recentTokens, err := CountTokens(context.Background(), cs.genkit, promptValues.WithRecentConversations(recentConversations))
+		recentTokens, err := CountTokens(ctx, cs.genkit, promptValues.WithRecentConversations(recentConversations))
 		if err != nil {
 			// On error, continue to next split point
 			continue

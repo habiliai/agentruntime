@@ -31,7 +31,7 @@ func CountTokens(
 	case "anthropic", "claude":
 		// For Anthropic, we need to know the specific model
 		// Default to claude-3-5-sonnet if not specified
-		return anthropic.CountTokens(ctx, g, msgs, nil, promptValues.Tools)
+		return anthropic.CountTokens(ctx, g, promptValues.Agent.ModelConfig, msgs, nil, promptValues.Tools)
 
 	default:
 		return 0, fmt.Errorf("unsupported token counter provider: %s", provider)

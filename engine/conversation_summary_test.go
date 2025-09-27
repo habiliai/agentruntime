@@ -258,7 +258,7 @@ func TestConversationSummarizer_findSplitPoint(t *testing.T) {
 		Tools:               []ai.Tool{},
 	}
 
-	splitPoint := summarizer.findSplitPoint(promptValues)
+	splitPoint := summarizer.findSplitPoint(ctx, promptValues)
 
 	// Should find a valid split point
 	assert.Greater(t, splitPoint, 0)

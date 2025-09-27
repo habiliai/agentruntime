@@ -71,24 +71,20 @@ func TestAgentWithKnowledgeService(t *testing.T) {
 	// First example should have knowledge_search action since knowledge is accessed via tool
 	require.Contains(t, firstExample[1].Actions, "knowledge_search", "First example should use knowledge_search")
 
-	// Second example should have web_search action
+	// Second example should ask about adoption advice
 	secondExample := agent.MessageExamples[1]
 	require.Contains(t, secondExample[0].Text, "adopting a rescue dog", "Second example should ask about adoption")
-	require.Contains(t, secondExample[1].Actions, "web_search", "Second example should use web_search")
 
 	// Test skills - now should include knowledge_search skill
-	require.GreaterOrEqual(t, len(agent.Skills), 3, "Should have at least 3 skills")
+	require.GreaterOrEqual(t, len(agent.Skills), 2, "Should have at least 2 skills")
 
 	// Find and test the skills
-	var webSearchSkill *entity.NativeAgentSkill
 	var adoptionAdvisorSkill *entity.LLMAgentSkill
 	var knowledgeSearchSkill *entity.NativeAgentSkill
 	for i, skill := range agent.Skills {
 		switch skill.Type {
 		case "nativeTool":
 			switch skill.OfNative.Name {
-			case "web_search":
-				webSearchSkill = agent.Skills[i].OfNative
 			case "knowledge_search":
 				knowledgeSearchSkill = agent.Skills[i].OfNative
 			}
@@ -99,8 +95,6 @@ func TestAgentWithKnowledgeService(t *testing.T) {
 			}
 		}
 	}
-	require.NotNil(t, webSearchSkill, "Should have web_search skill")
-
 	require.NotNil(t, adoptionAdvisorSkill, "Should have adoption_advisor skill")
 	require.Contains(t, adoptionAdvisorSkill.Description, "adoption and care", "adoption_advisor description should mention adoption and care")
 

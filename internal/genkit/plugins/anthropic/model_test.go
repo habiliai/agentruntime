@@ -79,8 +79,8 @@ func TestStreamingLogic_ServerToolUseBlock(t *testing.T) {
 	}
 }
 
-func TestBuildMessageParams_WebSearchTool(t *testing.T) {
-	// Test that web_search tool gets converted to WebSearchTool20250305Param
+func TestBuildMessageParams_WebSearchConfig(t *testing.T) {
+	// Test that WebSearchConfig gets converted to WebSearchTool20250305Param
 	genRequest := &ai.ModelRequest{
 		Messages: []*ai.Message{
 			{
@@ -92,20 +92,8 @@ func TestBuildMessageParams_WebSearchTool(t *testing.T) {
 		},
 		Config: map[string]any{
 			"maxOutputTokens": 1000,
-		},
-		Tools: []*ai.ToolDefinition{
-			{
-				Name:        "web_search",
-				Description: "Search the web",
-				InputSchema: map[string]any{
-					"type": "object",
-					"properties": map[string]any{
-						"query": map[string]any{
-							"type": "string",
-						},
-					},
-					"required": []string{"query"},
-				},
+			"webSearch": map[string]any{
+				"maxUses": 5,
 			},
 		},
 	}
@@ -113,11 +101,15 @@ func TestBuildMessageParams_WebSearchTool(t *testing.T) {
 	params, err := buildMessageParams(genRequest, "claude-3-5-haiku-latest", false)
 	require.NoError(t, err)
 
-	// Verify that web_search tool was converted properly
+	// Verify that WebSearchConfig was converted to WebSearchTool20250305Param
 	require.Len(t, params.Tools, 1)
 	assert.NotNil(t, params.Tools[0].OfWebSearchTool20250305)
 
-	t.Logf("Web search tool params: %+v", params.Tools[0])
+	webSearchTool := params.Tools[0].OfWebSearchTool20250305
+	require.NotNil(t, webSearchTool.MaxUses)
+	assert.Equal(t, int64(5), webSearchTool.MaxUses.Value)
+
+	t.Logf("Web search config converted to tool params: %+v", params.Tools[0])
 }
 
 func TestServerToolUseBlockHandling(t *testing.T) {

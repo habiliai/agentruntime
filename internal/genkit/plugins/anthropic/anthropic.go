@@ -34,45 +34,34 @@ var (
 		"claude-3-5-haiku-latest":  basicCap,
 	}
 	defaultRequestTimeout = 10 * time.Minute
-	defaultModelParams    = map[string]struct {
-		ai.GenerationCommonConfig
-		ExtendedThinkingConfig
-	}{
+	defaultModelParams    = map[string]AnthropicConfig{
 		"claude-opus-4-20250514": {
 			GenerationCommonConfig: ai.GenerationCommonConfig{
 				MaxOutputTokens: 32_000,
 			},
-			ExtendedThinkingConfig: ExtendedThinkingConfig{
-				ExtendedThinkingEnabled:     true,
-				ExtendedThinkingBudgetRatio: 0.15,
-			},
+			ExtendedThinkingEnabled:     true,
+			ExtendedThinkingBudgetRatio: 0.15,
 		},
 		"claude-sonnet-4-20250514": {
 			GenerationCommonConfig: ai.GenerationCommonConfig{
 				MaxOutputTokens: 64_000,
 			},
-			ExtendedThinkingConfig: ExtendedThinkingConfig{
-				ExtendedThinkingEnabled:     true,
-				ExtendedThinkingBudgetRatio: 0.15,
-			},
+			ExtendedThinkingEnabled:     true,
+			ExtendedThinkingBudgetRatio: 0.15,
 		},
 		"claude-3-7-sonnet-latest": {
 			GenerationCommonConfig: ai.GenerationCommonConfig{
 				MaxOutputTokens: 64_000,
 			},
-			ExtendedThinkingConfig: ExtendedThinkingConfig{
-				ExtendedThinkingEnabled:     true,
-				ExtendedThinkingBudgetRatio: 0.15,
-			},
+			ExtendedThinkingEnabled:     true,
+			ExtendedThinkingBudgetRatio: 0.15,
 		},
 		"claude-3-5-haiku-latest": {
 			GenerationCommonConfig: ai.GenerationCommonConfig{
 				MaxOutputTokens: 8192,
 			},
-			ExtendedThinkingConfig: ExtendedThinkingConfig{
-				ExtendedThinkingEnabled:     false,
-				ExtendedThinkingBudgetRatio: 0, // Will be calculated dynamically based on actual maxTokens
-			},
+			ExtendedThinkingEnabled:     false,
+			ExtendedThinkingBudgetRatio: 0, // Will be calculated dynamically based on actual maxTokens
 		},
 	}
 )
