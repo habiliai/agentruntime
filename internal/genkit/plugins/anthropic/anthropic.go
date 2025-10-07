@@ -28,13 +28,21 @@ var (
 	}
 
 	knownCaps = map[string]ai.ModelSupports{
-		"claude-opus-4-20250514":   basicCap,
-		"claude-sonnet-4-20250514": basicCap,
-		"claude-3-7-sonnet-latest": basicCap,
-		"claude-3-5-haiku-latest":  basicCap,
+		"claude-sonnet-4-5-20250929": basicCap,
+		"claude-opus-4-20250514":     basicCap,
+		"claude-sonnet-4-20250514":   basicCap,
+		"claude-3-7-sonnet-latest":   basicCap,
+		"claude-3-5-haiku-latest":    basicCap,
 	}
 	defaultRequestTimeout = 10 * time.Minute
 	defaultModelParams    = map[string]AnthropicConfig{
+		"claude-sonnet-4-5-20250929": {
+			GenerationCommonConfig: ai.GenerationCommonConfig{
+				MaxOutputTokens: 64_000,
+			},
+			ExtendedThinkingEnabled:     false,
+			ExtendedThinkingBudgetRatio: 0, // Will be calculated dynamically based on actual maxTokens
+		},
 		"claude-opus-4-20250514": {
 			GenerationCommonConfig: ai.GenerationCommonConfig{
 				MaxOutputTokens: 32_000,
@@ -124,6 +132,7 @@ func (a *Anthropic) Init(_ context.Context) (actions []api.Action) {
 		// Also define Claude 3.7 and 3.5 models as alternatives
 		a.DefineModel(labelPrefix, provider, "claude-3.7-sonnet", "claude-3-7-sonnet-latest", knownCaps["claude-3-7-sonnet-latest"]).(api.Action),
 		a.DefineModel(labelPrefix, provider, "claude-3.5-haiku", "claude-3-5-haiku-latest", knownCaps["claude-3-5-haiku-latest"]).(api.Action),
+		a.DefineModel(labelPrefix, provider, "claude-4.5-sonnet", "claude-sonnet-4-5-20250929", knownCaps["claude-sonnet-4-5-20250929"]).(api.Action),
 	)
 
 	return

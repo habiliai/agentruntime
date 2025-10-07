@@ -19,10 +19,17 @@ type (
 		ContentType string // text/plain, text/markdown, text/csv, text/json, application/pdf
 	}
 
+	ImageReader struct {
+		Content     io.Reader
+		ContentType string         // image/jpeg, image/png, image/gif, image/webp
+		Metadata    map[string]any // Optional metadata (e.g., timestamp, frame_number, etc.)
+	}
+
 	Service interface {
 		// Knowledge management methods
 		IndexKnowledgeFromMap(ctx context.Context, id string, input []map[string]any) (*Knowledge, error)
 		IndexKnowledgeFromDocuments(ctx context.Context, id string, inputs iter.Seq2[*DocumentReader, error]) (*Knowledge, error)
+		IndexKnowledgeFromImages(ctx context.Context, id string, input iter.Seq2[*ImageReader, error], metadata map[string]any) (*Knowledge, error)
 		RetrieveRelevantKnowledge(ctx context.Context, query string, limit int, allowedKnowledgeIds []string) ([]*KnowledgeSearchResult, error)
 		DeleteKnowledge(ctx context.Context, knowledgeId string) error
 		Close() error

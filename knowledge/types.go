@@ -38,8 +38,9 @@ type (
 
 const (
 	// Source type constants for metadata
-	SourceTypeMap = "map"
-	SourceTypePDF = "pdf"
+	SourceTypeMap   = "map"
+	SourceTypePDF   = "pdf"
+	SourceTypeVideo = "video"
 
 	// Metadata keys for source information
 	MetadataKeySourceTitle    = "source_title"
