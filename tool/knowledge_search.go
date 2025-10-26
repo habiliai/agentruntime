@@ -11,6 +11,7 @@ type Knowledge struct {
 	ai.Media `json:",inline"`
 	Score    float64 `json:"score,omitempty" jsonschema:"description=Score of the search result"`
 	Context  string  `json:"context,omitempty" jsonschema:"description=Text of the search result"`
+	ID       string  `json:"id,omitempty" jsonschema:"description=ID of the search result"`
 }
 
 func (m *manager) registerKnowledgeSearchTool(skill *entity.NativeAgentSkill) error {
@@ -79,6 +80,7 @@ The search uses semantic similarity, so exact keyword matches are not required. 
 			// Clean up embedding data to reduce response size
 			for _, res := range results {
 				k := Knowledge{
+					ID:    res.ID,
 					Score: float64(res.Score),
 				}
 				switch res.Content.MIMEType {
